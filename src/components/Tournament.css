@@ -1,0 +1,131 @@
+.tournament-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow: auto;
+  width: 100%;
+}
+
+.tournament-bracket-absolute {
+  margin: 0 auto;
+  position: relative;
+  background: url('/image.png') top left / contain no-repeat;
+  background-size: 100% 100%;
+  transform-origin: top center;
+}
+
+.player {
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(92, 0, 0, 0.95) 100%);
+  padding: 15px 20px;
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(139, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.player:hover {
+  border-color: rgba(255, 100, 100, 0.8);
+  box-shadow: 0 6px 20px rgba(139, 0, 0, 0.7);
+}
+
+.player.winner {
+  border-color: #FFD700;
+  box-shadow: 0 6px 25px rgba(255, 215, 0, 0.6);
+}
+
+.player-name {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+  text-align: left;
+}
+
+.player-name::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.player span.player-name {
+  display: block;
+  min-height: 1.2em;
+}
+
+.select-winner {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.select-winner:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.select-winner:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.final-section {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  z-index: 10;
+}
+
+.center-decoration {
+  font-size: 3rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 20px rgba(139, 0, 0, 0.8);
+  letter-spacing: 10px;
+}
+
+.final-match {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 300px;
+}
+
+.final-match .player {
+  min-width: 300px;
+}
+
+.winner-display {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.trophy {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.champion-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+/* Responsive scaling is handled dynamically via JavaScript */

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>戦転 GROOVE - THE DESK SHOWDOWN</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="main-title">戦転<br>GROOVE</h1>
+            <h2 class="sub-title">THE DESK SHOWDOWN</h2>
+        </header>
+
+        <div class="tournament-bracket">
+            <!-- Left Side -->
+            <div class="bracket-column left">
+                <!-- Round 1 (Quarter Finals) -->
+                <div class="match" data-match="1" data-round="1">
+                    <div class="player" data-slot="1-1">
+                        <input type="text" placeholder="出場者 1" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="1-2">
+                        <input type="text" placeholder="出場者 2" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+
+                <div class="match" data-match="2" data-round="1">
+                    <div class="player" data-slot="2-1">
+                        <input type="text" placeholder="出場者 3" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="2-2">
+                        <input type="text" placeholder="出場者 4" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Semi -->
+            <div class="bracket-column semi-left">
+                <div class="match" data-match="5" data-round="2">
+                    <div class="player" data-slot="5-1">
+                        <span class="player-name"></span>
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="5-2">
+                        <span class="player-name"></span>
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center (Final) -->
+            <div class="bracket-column final">
+                <div class="center-decoration">技竜</div>
+                <div class="match" data-match="7" data-round="3">
+                    <div class="player" data-slot="7-1">
+                        <span class="player-name"></span>
+                        <button class="select-winner">優勝</button>
+                    </div>
+                    <div class="player" data-slot="7-2">
+                        <span class="player-name"></span>
+                        <button class="select-winner">優勝</button>
+                    </div>
+                </div>
+                <div class="winner-display">
+                    <div class="trophy">🏆</div>
+                    <div class="champion-name"></div>
+                </div>
+            </div>
+
+            <!-- Right Semi -->
+            <div class="bracket-column semi-right">
+                <div class="match" data-match="6" data-round="2">
+                    <div class="player" data-slot="6-1">
+                        <span class="player-name"></span>
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="6-2">
+                        <span class="player-name"></span>
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side -->
+            <div class="bracket-column right">
+                <!-- Round 1 (Quarter Finals) -->
+                <div class="match" data-match="3" data-round="1">
+                    <div class="player" data-slot="3-1">
+                        <input type="text" placeholder="出場者 5" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="3-2">
+                        <input type="text" placeholder="出場者 6" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+
+                <div class="match" data-match="4" data-round="1">
+                    <div class="player" data-slot="4-1">
+                        <input type="text" placeholder="出場者 7" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                    <div class="player" data-slot="4-2">
+                        <input type="text" placeholder="出場者 8" class="player-name">
+                        <button class="select-winner">勝</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="reset-btn">リセット</button>
+        </div>
+    </div>
+
+    <!-- GSAP Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

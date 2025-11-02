@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>座標測定ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+        .info {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .coordinates {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #4CAF50;
+        }
+        .image-container {
+            position: relative;
+            display: inline-block;
+            cursor: crosshair;
+            border: 2px solid #FFD700;
+        }
+        .image-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        .marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FF0000;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFD700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .saved-coords {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .saved-coords h2 {
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        .coord-list {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.reset {
+            background: #f44336;
+        }
+        button.reset:hover {
+            background: #da190b;
+        }
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 トーナメント座標測定ツール</h1>
+
+        <div class="instructions">
+            <h3>使い方</h3>
+            <ol>
+                <li>画像上の各スロット（赤い枠）の<strong>左上</strong>を順番にクリック</li>
+                <li>順番：左側の上から1→2→3→4→5→6、次に右側の上から1→2→3→4→5→6</li>
+                <li>合計12箇所をクリック</li>
+                <li>完了したら「📋 座標をコピー」ボタンをクリック</li>
+            </ol>
+            <p style="margin-top: 10px; color: #FFD700;">※ 各赤い枠の左上隅を統一してクリックすると正確です</p>
+        </div>
+
+        <div class="info">
+            <div>現在のマウス位置: <span id="current-coords">-</span></div>
+            <div class="coordinates">クリック数: <span id="click-count">0</span>/12</div>
+            <div style="margin-top: 10px;">
+                <button onclick="copyCoordinates()">📋 座標をコピー</button>
+                <button class="reset" onclick="resetCoordinates()">🔄 リセット</button>
+            </div>
+        </div>
+
+        <div class="image-container" id="imageContainer">
+            <img src="image.png" id="tournamentImage" alt="Tournament">
+        </div>
+
+        <div class="saved-coords">
+            <h2>記録された座標</h2>
+            <div class="coord-list" id="coordList">クリックして座標を記録してください...</div>
+        </div>
+    </div>
+
+    <script>
+        const labels = [
+            '左側 - 1番上',
+            '左側 - 2番目',
+            '左側 - 3番目',
+            '左側 - 4番目',
+            '左側 - 5番目',
+            '左側 - 6番目（最下）',
+            '右側 - 1番上',
+            '右側 - 2番目',
+            '右側 - 3番目',
+            '右側 - 4番目',
+            '右側 - 5番目',
+            '右側 - 6番目（最下）'
+        ];
+
+        let coordinates = [];
+        let clickCount = 0;
+
+        const imageContainer = document.getElementById('imageContainer');
+        const image = document.getElementById('tournamentImage');
+        const currentCoordsDisplay = document.getElementById('current-coords');
+        const clickCountDisplay = document.getElementById('click-count');
+        const coordListDisplay = document.getElementById('coordList');
+
+        // マウス移動で座標表示
+        imageContainer.addEventListener('mousemove', (e) => {
+            const rect = image.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+            currentCoordsDisplay.textContent = `x: ${x}, y: ${y}`;
+        });
+
+        // クリックで座標記録
+        imageContainer.addEventListener('click', (e) => {
+            if (clickCount >= 12) {
+                alert('全ての座標が記録されました。リセットして再度記録できます。');
+                return;
+            }
+
+            const rect = image.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+
+            // マーカーを追加
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.style.left = x + 'px';
+            marker.style.top = y + 'px';
+            imageContainer.appendChild(marker);
+
+            // ラベルを追加
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = `${clickCount + 1}. ${labels[clickCount]} (${x}, ${y})`;
+            label.style.left = (x + 10) + 'px';
+            label.style.top = (y - 10) + 'px';
+            imageContainer.appendChild(label);
+
+            // 座標を保存
+            coordinates.push({ label: labels[clickCount], x, y });
+            clickCount++;
+            clickCountDisplay.textContent = clickCount;
+
+            updateCoordinatesList();
+        });
+
+        function updateCoordinatesList() {
+            if (coordinates.length === 0) {
+                coordListDisplay.textContent = 'クリックして座標を記録してください...';
+                return;
+            }
+
+            let html = '<pre style="color: #4CAF50;">{\n';
+            coordinates.forEach((coord, index) => {
+                const key = coord.label.replace(/[（）]/g, '_').replace(/\s+/g, '_');
+                html += `  "${coord.label}": { x: ${coord.x}, y: ${coord.y} }${index < coordinates.length - 1 ? ',' : ''}\n`;
+            });
+            html += '}</pre>';
+
+            coordListDisplay.innerHTML = html;
+        }
+
+        function copyCoordinates() {
+            if (coordinates.length === 0) {
+                alert('座標が記録されていません');
+                return;
+            }
+
+            let text = '{\n';
+            coordinates.forEach((coord, index) => {
+                text += `  "${coord.label}": { x: ${coord.x}, y: ${coord.y} }${index < coordinates.length - 1 ? ',' : ''}\n`;
+            });
+            text += '}';
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('座標をクリップボードにコピーしました！');
+            }).catch(() => {
+                alert('コピーに失敗しました。手動でコピーしてください。');
+            });
+        }
+
+        function resetCoordinates() {
+            if (confirm('記録された座標をリセットしますか？')) {
+                coordinates = [];
+                clickCount = 0;
+                clickCountDisplay.textContent = '0';
+
+                // マーカーとラベルを削除
+                const markers = imageContainer.querySelectorAll('.marker, .label');
+                markers.forEach(marker => marker.remove());
+
+                updateCoordinatesList();
+            }
+        }
+    </script>
+</body>
+</html>
