@@ -9,6 +9,19 @@ function App() {
     return saved ? JSON.parse(saved) : Array(12).fill('')
   })
 
+  // Round 1 winners (QF0-3 winners)
+  const [qfWinners, setQfWinners] = useState(() => {
+    const saved = localStorage.getItem('qfWinners')
+    return saved ? JSON.parse(saved) : Array(4).fill('')
+  })
+
+  // Round 2 winners (SF0-3 winners: QF winner vs Seed)
+  const [sfWinners, setSfWinners] = useState(() => {
+    const saved = localStorage.getItem('sfWinners')
+    return saved ? JSON.parse(saved) : Array(4).fill('')
+  })
+
+  // Semi-final winners (進出者2人)
   const [finalPlayers, setFinalPlayers] = useState(() => {
     const saved = localStorage.getItem('finalPlayers')
     return saved ? JSON.parse(saved) : ['', '']
@@ -21,6 +34,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('tournamentPlayers', JSON.stringify(players))
   }, [players])
+
+  useEffect(() => {
+    localStorage.setItem('qfWinners', JSON.stringify(qfWinners))
+  }, [qfWinners])
+
+  useEffect(() => {
+    localStorage.setItem('sfWinners', JSON.stringify(sfWinners))
+  }, [sfWinners])
 
   useEffect(() => {
     localStorage.setItem('finalPlayers', JSON.stringify(finalPlayers))
@@ -42,45 +63,49 @@ function App() {
     })
   }
 
-  const advanceToBracket = (matchId, slotIndex) => {
-    let playerName
-
-    if (matchId === 'final') {
-      playerName = finalPlayers[slotIndex]
-    } else {
-      playerName = players[slotIndex]
-    }
-
-    if (!playerName) return
-
-    // Quarter finals - advance to bracket slot
+  const advanceToBracket = (matchId, winnerName) => {
+    // Round 1: QF0-3 → qfWinners
     if (matchId === 'qf0') {
-      setPlayers(prev => { const n = [...prev]; n[2] = playerName; return n })
+      setQfWinners(prev => { const n = [...prev]; n[0] = winnerName; return n })
     } else if (matchId === 'qf1') {
-      setPlayers(prev => { const n = [...prev]; n[5] = playerName; return n })
+      setQfWinners(prev => { const n = [...prev]; n[1] = winnerName; return n })
     } else if (matchId === 'qf2') {
-      setPlayers(prev => { const n = [...prev]; n[8] = playerName; return n })
+      setQfWinners(prev => { const n = [...prev]; n[2] = winnerName; return n })
     } else if (matchId === 'qf3') {
-      setPlayers(prev => { const n = [...prev]; n[11] = playerName; return n })
+      setQfWinners(prev => { const n = [...prev]; n[3] = winnerName; return n })
     }
-    // Semi finals - advance to bracket slot
+    // Round 2: SF0-3 → sfWinners
     else if (matchId === 'sf0') {
-      setFinalPlayers(prev => [playerName, prev[1]])
+      setSfWinners(prev => { const n = [...prev]; n[0] = winnerName; return n })
     } else if (matchId === 'sf1') {
-      setFinalPlayers(prev => [prev[0], playerName])
+      setSfWinners(prev => { const n = [...prev]; n[1] = winnerName; return n })
+    } else if (matchId === 'sf2') {
+      setSfWinners(prev => { const n = [...prev]; n[2] = winnerName; return n })
+    } else if (matchId === 'sf3') {
+      setSfWinners(prev => { const n = [...prev]; n[3] = winnerName; return n })
     }
-    // Final - determine champion
+    // Round 3: Semi-finals → finalPlayers
+    else if (matchId === 'semi0') {
+      setFinalPlayers(prev => [winnerName, prev[1]])
+    } else if (matchId === 'semi1') {
+      setFinalPlayers(prev => [prev[0], winnerName])
+    }
+    // Final → champion
     else if (matchId === 'final') {
-      setChampion(playerName)
+      setChampion(winnerName)
     }
   }
 
   const reset = () => {
     if (confirm('トーナメントをリセットしますか？')) {
       setPlayers(Array(12).fill(''))
+      setQfWinners(Array(4).fill(''))
+      setSfWinners(Array(4).fill(''))
       setFinalPlayers(['', ''])
       setChampion(null)
       localStorage.removeItem('tournamentPlayers')
+      localStorage.removeItem('qfWinners')
+      localStorage.removeItem('sfWinners')
       localStorage.removeItem('finalPlayers')
       localStorage.removeItem('champion')
     }
@@ -90,6 +115,8 @@ function App() {
     <div className="app">
       <Tournament
         players={players}
+        qfWinners={qfWinners}
+        sfWinners={sfWinners}
         finalPlayers={finalPlayers}
         champion={champion}
         updatePlayer={updatePlayer}

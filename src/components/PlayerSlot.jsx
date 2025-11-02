@@ -22,7 +22,7 @@ function PlayerSlot({
   }, [animateEntry, name])
 
   const handleSelect = () => {
-    if (!disabled && name) {
+    if (!disabled) {
       onSelect()
     }
   }
@@ -75,7 +75,7 @@ function PlayerSlot({
       <button
         className="advance-bracket-btn"
         onClick={handleSelect}
-        disabled={disabled || !name || (isInput && !name.trim())}
+        disabled={disabled}
       >
         {buttonText}
       </button>

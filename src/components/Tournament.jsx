@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import PlayerSlot from './PlayerSlot'
-import { SLOT_POSITIONS, IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT } from '../tournamentConfig'
+import { SLOT_POSITIONS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT } from '../tournamentConfig'
 import './Tournament.css'
 
-function Tournament({ players, finalPlayers, champion, updatePlayer, advanceToBracket }) {
+function Tournament({ players, qfWinners, sfWinners, finalPlayers, champion, updatePlayer, advanceToBracket }) {
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
@@ -24,32 +24,38 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, advanceToBr
   // Determine match ID and opponent for each slot
   const getMatchInfo = (slotIndex) => {
     const matchMap = {
-      0: { matchId: 'qf0', opponentSlot: 1 },
-      1: { matchId: 'qf0', opponentSlot: 0 },
-      2: { matchId: 'sf0', opponentSlot: 5 },
+      // Round 1: Quarter Finals
+      1: { matchId: 'qf0', opponentSlot: 2 },
+      2: { matchId: 'qf0', opponentSlot: 1 },
       3: { matchId: 'qf1', opponentSlot: 4 },
       4: { matchId: 'qf1', opponentSlot: 3 },
-      5: { matchId: 'sf0', opponentSlot: 2 },
-      6: { matchId: 'qf2', opponentSlot: 7 },
-      7: { matchId: 'qf2', opponentSlot: 6 },
-      8: { matchId: 'sf1', opponentSlot: 11 },
+      7: { matchId: 'qf2', opponentSlot: 8 },
+      8: { matchId: 'qf2', opponentSlot: 7 },
       9: { matchId: 'qf3', opponentSlot: 10 },
       10: { matchId: 'qf3', opponentSlot: 9 },
-      11: { matchId: 'sf1', opponentSlot: 8 },
+      // Round 2: Seeded players (vs QF winners)
+      0: { matchId: 'sf0', opponentSlot: -1 }, // vs qfWinners[0]
+      5: { matchId: 'sf1', opponentSlot: -1 }, // vs qfWinners[1]
+      6: { matchId: 'sf2', opponentSlot: -1 }, // vs qfWinners[2]
+      11: { matchId: 'sf3', opponentSlot: -1 }, // vs qfWinners[3]
     }
     return matchMap[slotIndex]
   }
 
   const canAdvanceToBracket = (slotIndex) => {
-    const position = SLOT_POSITIONS[slotIndex]
-    if (position.isInput) {
-      // Can advance if player has name
-      return !!players[slotIndex]
-    } else {
-      // For bracket slots, can advance if both players in match have names
-      const { opponentSlot } = getMatchInfo(slotIndex)
-      return !!players[slotIndex] && !!players[opponentSlot]
+    // Round 1 (QF): slots 1,2,3,4,7,8,9,10
+    if ([1, 2, 3, 4, 7, 8, 9, 10].includes(slotIndex)) {
+      return true
     }
+
+    // Round 2 (SF): Seeded players (slots 0,5,6,11)
+    // They can advance anytime (opponent existence not required)
+    if (slotIndex === 0) return true
+    if (slotIndex === 5) return true
+    if (slotIndex === 6) return true
+    if (slotIndex === 11) return true
+
+    return false
   }
 
   return (
@@ -80,7 +86,7 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, advanceToBr
               onNameChange={(name) => updatePlayer(position.slot, name)}
               onSelect={() => {
                 const { matchId } = getMatchInfo(position.slot)
-                advanceToBracket(matchId, position.slot)
+                advanceToBracket(matchId, players[position.slot])
               }}
               disabled={!canAdvanceToBracket(position.slot)}
               buttonText="勝"
@@ -89,27 +95,116 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, advanceToBr
           </div>
         ))}
 
+        {/* QF Winners - display only when winner exists */}
+        <AnimatePresence>
+          {QF_WINNER_POSITIONS.map((position) =>
+            qfWinners[position.index] ? (
+              <motion.div
+                key={`qf-winner-${position.index}`}
+                initial={{ opacity: 0, scale: 0.5, x: -100 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.5, ease: "backOut" }}
+                style={{
+                  position: 'absolute',
+                  left: `${position.x}px`,
+                  top: `${position.y}px`,
+                  width: `${SLOT_WIDTH}px`,
+                  height: `${SLOT_HEIGHT}px`
+                }}
+              >
+                <PlayerSlot
+                  name={qfWinners[position.index]}
+                  isInput={false}
+                  onSelect={() => advanceToBracket(`sf${position.index}`, qfWinners[position.index])}
+                  disabled={false}
+                  buttonText="勝"
+                  animateEntry={false}
+                />
+              </motion.div>
+            ) : null
+          )}
+        </AnimatePresence>
+
+        {/* SF Winners - display only when winner exists */}
+        <AnimatePresence>
+          {SF_WINNER_POSITIONS.map((position) =>
+            sfWinners[position.index] ? (
+              <motion.div
+                key={`sf-winner-${position.index}`}
+                initial={{ opacity: 0, scale: 0.5, x: position.index < 2 ? -80 : 80 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.5, ease: "backOut" }}
+                style={{
+                  position: 'absolute',
+                  left: `${position.x}px`,
+                  top: `${position.y}px`,
+                  width: `${SLOT_WIDTH}px`,
+                  height: `${SLOT_HEIGHT}px`
+                }}
+              >
+                <PlayerSlot
+                  name={sfWinners[position.index]}
+                  isInput={false}
+                  onSelect={() => {
+                    // SF0, SF1 → semi0 (finalPlayers[0])
+                    // SF2, SF3 → semi1 (finalPlayers[1])
+                    const matchId = position.index < 2 ? 'semi0' : 'semi1'
+                    advanceToBracket(matchId, sfWinners[position.index])
+                  }}
+                  disabled={false}
+                  buttonText="勝"
+                  animateEntry={false}
+                />
+              </motion.div>
+            ) : null
+          )}
+        </AnimatePresence>
+
         {/* Final match - positioned at center */}
         <div className="final-section">
-          <div className="center-decoration">技竜</div>
-
           <div className="final-match">
-            <PlayerSlot
-              name={finalPlayers[0]}
-              isInput={false}
-              onSelect={() => advanceToBracket('final', 0)}
-              disabled={!finalPlayers[0] || !finalPlayers[1]}
-              buttonText="優勝"
-              animateEntry={finalPlayers[0]}
-            />
-            <PlayerSlot
-              name={finalPlayers[1]}
-              isInput={false}
-              onSelect={() => advanceToBracket('final', 1)}
-              disabled={!finalPlayers[0] || !finalPlayers[1]}
-              buttonText="優勝"
-              animateEntry={finalPlayers[1]}
-            />
+            <AnimatePresence>
+              {finalPlayers[0] && (
+                <motion.div
+                  key="final-player-0"
+                  initial={{ opacity: 0, scale: 0.5, x: -100 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.5, ease: "backOut" }}
+                >
+                  <PlayerSlot
+                    name={finalPlayers[0]}
+                    isInput={false}
+                    onSelect={() => advanceToBracket('final', finalPlayers[0])}
+                    disabled={false}
+                    buttonText="優勝"
+                    animateEntry={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {finalPlayers[1] && (
+                <motion.div
+                  key="final-player-1"
+                  initial={{ opacity: 0, scale: 0.5, x: 100 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.5, ease: "backOut" }}
+                >
+                  <PlayerSlot
+                    name={finalPlayers[1]}
+                    isInput={false}
+                    onSelect={() => advanceToBracket('final', finalPlayers[1])}
+                    disabled={false}
+                    buttonText="優勝"
+                    animateEntry={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <AnimatePresence>
