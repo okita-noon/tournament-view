@@ -54,10 +54,32 @@ export const QF_WINNER_POSITIONS = [
 
 // SF Winners display positions (after Round 2)
 export const SF_WINNER_POSITIONS = [
-  { x: 360, y: 820, index: 0 },  // SF0 winner (qfWinner[0] vs slot 0)
-  { x: 360, y: 1422, index: 1 }, // SF1 winner (qfWinner[1] vs slot 5)
-  { x: 590, y: 820, index: 2 },  // SF2 winner (qfWinner[2] vs slot 6)
-  { x: 590, y: 1422, index: 3 }, // SF3 winner (qfWinner[3] vs slot 11)
+  { x: 275, y: 620, index: 0 },  // SF0 winner (qfWinner[0] vs slot 0)
+  { x: 275, y: 1422, index: 1 }, // SF1 winner (qfWinner[1] vs slot 5)
+  { x: 675, y: 620, index: 2 },  // SF2 winner (qfWinner[2] vs slot 6)
+  { x: 675, y: 1422, index: 3 }, // SF3 winner (qfWinner[3] vs slot 11)
+];
+
+// Final Players display positions (決勝戦)
+export const FINAL_PLAYER_POSITIONS = [
+  { x: 325, y: 1025, index: 0 },  // Final player 0 (left semifinal winner)
+  { x: 700, y: 1025, index: 1 },  // Final player 1 (right semifinal winner)
+];
+
+// Default player names for initial setup
+export const DEFAULT_PLAYERS = [
+  'iroziro',  // slot 0 - Seed
+  'Malimo',  // slot 1
+  'HAL',  // slot 2
+  'a_l_p',  // slot 3
+  'airi',  // slot 4
+  'Beige',  // slot 5 - Seed
+  'Goat',  // slot 6 - Seed
+  'kAtts',  // slot 7
+  'Menowa*',  // slot 8
+  'Meves',  // slot 9
+  'Rai',  // slot 10
+  'マワシスギ',  // slot 11 - Seed
 ];
 
 // Background image dimensions (display size when coordinates were measured)

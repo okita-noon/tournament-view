@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
-import { SLOT_POSITIONS } from './tournamentConfig'
+import { SLOT_POSITIONS, DEFAULT_PLAYERS } from './tournamentConfig'
 import './App.css'
 
 function App() {
   const [players, setPlayers] = useState(() => {
     const saved = localStorage.getItem('tournamentPlayers')
-    return saved ? JSON.parse(saved) : Array(12).fill('')
+    return saved ? JSON.parse(saved) : DEFAULT_PLAYERS
   })
 
   // Round 1 winners (QF0-3 winners)
@@ -98,7 +98,7 @@ function App() {
 
   const reset = () => {
     if (confirm('トーナメントをリセットしますか？')) {
-      setPlayers(Array(12).fill(''))
+      setPlayers(DEFAULT_PLAYERS)
       setQfWinners(Array(4).fill(''))
       setSfWinners(Array(4).fill(''))
       setFinalPlayers(['', ''])

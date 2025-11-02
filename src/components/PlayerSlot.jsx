@@ -54,31 +54,16 @@ function PlayerSlot({
 
   return (
     <motion.div
-      className="player"
+      className={`player ${disabled ? 'disabled' : 'clickable'}`}
       initial={shouldAnimate ? "initial" : false}
       animate={shouldAnimate ? ["animate", "flash"] : {}}
       variants={variants}
-      whileHover={{ scale: 1.02 }}
+      whileHover={!disabled ? { scale: 1.02 } : {}}
       transition={{ duration: 0.2 }}
+      onClick={handleSelect}
+      style={{ cursor: disabled ? 'default' : 'pointer' }}
     >
-      {isInput ? (
-        <input
-          type="text"
-          className="player-name"
-          placeholder={placeholder}
-          value={name || ''}
-          onChange={(e) => onNameChange(e.target.value)}
-        />
-      ) : (
-        <span className="player-name">{name}</span>
-      )}
-      <button
-        className="advance-bracket-btn"
-        onClick={handleSelect}
-        disabled={disabled}
-      >
-        {buttonText}
-      </button>
+      <span className="player-name">{name || placeholder}</span>
     </motion.div>
   )
 }
