@@ -4,7 +4,7 @@ import PlayerSlot from './PlayerSlot'
 import { SLOT_POSITIONS, IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT } from '../tournamentConfig'
 import './Tournament.css'
 
-function Tournament({ players, finalPlayers, champion, updatePlayer, selectWinner }) {
+function Tournament({ players, finalPlayers, champion, updatePlayer, advanceToBracket }) {
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
@@ -40,13 +40,13 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, selectWinne
     return matchMap[slotIndex]
   }
 
-  const canSelectWinner = (slotIndex) => {
+  const canAdvanceToBracket = (slotIndex) => {
     const position = SLOT_POSITIONS[slotIndex]
     if (position.isInput) {
-      // Can select if player has name
+      // Can advance if player has name
       return !!players[slotIndex]
     } else {
-      // For non-input slots, can select if both players in match have names
+      // For bracket slots, can advance if both players in match have names
       const { opponentSlot } = getMatchInfo(slotIndex)
       return !!players[slotIndex] && !!players[opponentSlot]
     }
@@ -80,9 +80,9 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, selectWinne
               onNameChange={(name) => updatePlayer(position.slot, name)}
               onSelect={() => {
                 const { matchId } = getMatchInfo(position.slot)
-                selectWinner(matchId, position.slot)
+                advanceToBracket(matchId, position.slot)
               }}
-              disabled={!canSelectWinner(position.slot)}
+              disabled={!canAdvanceToBracket(position.slot)}
               buttonText="勝"
               animateEntry={!position.isInput && players[position.slot]}
             />
@@ -97,7 +97,7 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, selectWinne
             <PlayerSlot
               name={finalPlayers[0]}
               isInput={false}
-              onSelect={() => selectWinner('final', 0)}
+              onSelect={() => advanceToBracket('final', 0)}
               disabled={!finalPlayers[0] || !finalPlayers[1]}
               buttonText="優勝"
               animateEntry={finalPlayers[0]}
@@ -105,7 +105,7 @@ function Tournament({ players, finalPlayers, champion, updatePlayer, selectWinne
             <PlayerSlot
               name={finalPlayers[1]}
               isInput={false}
-              onSelect={() => selectWinner('final', 1)}
+              onSelect={() => advanceToBracket('final', 1)}
               disabled={!finalPlayers[0] || !finalPlayers[1]}
               buttonText="優勝"
               animateEntry={finalPlayers[1]}

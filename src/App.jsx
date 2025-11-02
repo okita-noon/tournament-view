@@ -42,7 +42,7 @@ function App() {
     })
   }
 
-  const selectWinner = (matchId, slotIndex) => {
+  const advanceToBracket = (matchId, slotIndex) => {
     let playerName
 
     if (matchId === 'final') {
@@ -53,7 +53,7 @@ function App() {
 
     if (!playerName) return
 
-    // Quarter finals
+    // Quarter finals - advance to bracket slot
     if (matchId === 'qf0') {
       setPlayers(prev => { const n = [...prev]; n[2] = playerName; return n })
     } else if (matchId === 'qf1') {
@@ -63,13 +63,13 @@ function App() {
     } else if (matchId === 'qf3') {
       setPlayers(prev => { const n = [...prev]; n[11] = playerName; return n })
     }
-    // Semi finals
+    // Semi finals - advance to bracket slot
     else if (matchId === 'sf0') {
       setFinalPlayers(prev => [playerName, prev[1]])
     } else if (matchId === 'sf1') {
       setFinalPlayers(prev => [prev[0], playerName])
     }
-    // Final
+    // Final - determine champion
     else if (matchId === 'final') {
       setChampion(playerName)
     }
@@ -93,7 +93,7 @@ function App() {
         finalPlayers={finalPlayers}
         champion={champion}
         updatePlayer={updatePlayer}
-        selectWinner={selectWinner}
+        advanceToBracket={advanceToBracket}
       />
 
       <div className="controls">

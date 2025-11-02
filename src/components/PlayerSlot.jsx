@@ -73,7 +73,7 @@ function PlayerSlot({
         <span className="player-name">{name}</span>
       )}
       <button
-        className="select-winner"
+        className="advance-bracket-btn"
         onClick={handleSelect}
         disabled={disabled || !name || (isInput && !name.trim())}
       >
