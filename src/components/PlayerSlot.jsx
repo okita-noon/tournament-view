@@ -5,6 +5,7 @@ function PlayerSlot({
   name,
   placeholder,
   isInput,
+  isLoser = false,
   onNameChange,
   onSelect,
   disabled,
@@ -54,7 +55,7 @@ function PlayerSlot({
 
   return (
     <motion.div
-      className={`player ${disabled ? 'disabled' : 'clickable'}`}
+      className={`player ${disabled ? 'disabled' : 'clickable'} ${isLoser ? 'loser' : ''}`}
       initial={shouldAnimate ? "initial" : false}
       animate={shouldAnimate ? ["animate", "flash"] : {}}
       variants={variants}

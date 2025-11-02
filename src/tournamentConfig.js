@@ -89,3 +89,6 @@ export const IMAGE_HEIGHT = 1800;
 // Slot dimensions (approximate size of red boxes in image)
 export const SLOT_WIDTH = 310;
 export const SLOT_HEIGHT = 75;
+
+// Trophy image path (set to null to use default emoji 🏆)
+export const TROPHY_IMAGE = null; // Example: '/trophy.png'

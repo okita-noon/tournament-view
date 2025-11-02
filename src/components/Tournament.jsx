@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import PlayerSlot from './PlayerSlot'
-import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS } from '../tournamentConfig'
+import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, TROPHY_IMAGE } from '../tournamentConfig'
 import './Tournament.css'
 
 function Tournament({ players, playerPositions, champion, updatePlayer, advanceToBracket }) {
@@ -68,6 +68,14 @@ function Tournament({ players, playerPositions, champion, updatePlayer, advanceT
         11: { matchId: 'sf3', opponentSlot: -1 },
       }
       return matchMap[slotIndex]
+    } else if (round === 'qf-winner') {
+      // QF勝者がシード選手と対戦
+      const qfIndex = QF_WINNER_POSITIONS.findIndex(qfp =>
+        Math.abs(qfp.x - pos.x) < 10 && Math.abs(qfp.y - pos.y) < 10
+      )
+      if (qfIndex >= 0) {
+        return { matchId: `sf${qfIndex}`, opponentSlot: -1 }
+      }
     } else if (round === 'sf-winner') {
       // SF Winner同士の準決勝
       const sfIndex = SF_WINNER_POSITIONS.findIndex(sfp =>
@@ -91,9 +99,89 @@ function Tournament({ players, playerPositions, champion, updatePlayer, advanceT
     if (round === 'initial') {
       // Initial position - can always advance
       return true
-    } else if (round === 'sf-winner' || round === 'final') {
-      // SF winners or finalists - can always advance
+    } else if (round === 'qf-winner' || round === 'sf-winner' || round === 'final') {
+      // QF winners, SF winners or finalists - can always advance
       return true
+    }
+
+    return false
+  }
+
+  // スロットが負けたかどうかを判定
+  const isLoser = (slotIndex) => {
+    const round = getSlotRound(slotIndex)
+
+    if (round === 'initial') {
+      const matchInfo = getMatchInfo(slotIndex)
+      if (!matchInfo || !matchInfo.matchId) return false
+
+      // Round 1 (QF): 対戦相手が移動したら負け
+      if (matchInfo.matchId.startsWith('qf')) {
+        const opponentSlot = matchInfo.opponentSlot
+        if (opponentSlot >= 0) {
+          const opponentRound = getSlotRound(opponentSlot)
+          return opponentRound !== 'initial'
+        }
+      }
+
+      // Round 2 (SF): シード選手の場合、対応するQF勝者位置に誰かいるかチェック
+      if (matchInfo.matchId.startsWith('sf')) {
+        const sfIndex = { 'sf0': 0, 'sf1': 1, 'sf2': 2, 'sf3': 3 }[matchInfo.matchId]
+        // QF勝者位置に誰かいるかチェック
+        const qfWinnerAtPosition = playerPositions.some(p => {
+          const posRound = getSlotRound(p.slot)
+          if (posRound !== 'qf-winner') return false
+          const qfPos = QF_WINNER_POSITIONS[sfIndex]
+          return Math.abs(p.x - qfPos.x) < 10 && Math.abs(p.y - qfPos.y) < 10
+        })
+
+        if (qfWinnerAtPosition) {
+          // QF勝者がいる場合、その人がさらに進んでいたら負け
+          const qfWinnerSlot = playerPositions.find(p => {
+            const posRound = getSlotRound(p.slot)
+            if (posRound !== 'qf-winner') return false
+            const qfPos = QF_WINNER_POSITIONS[sfIndex]
+            return Math.abs(p.x - qfPos.x) < 10 && Math.abs(p.y - qfPos.y) < 10
+          })
+          if (qfWinnerSlot) {
+            const qfWinnerNextRound = getSlotRound(qfWinnerSlot.slot)
+            return qfWinnerNextRound === 'sf-winner'
+          }
+        }
+      }
+    } else if (round === 'qf-winner') {
+      // QF勝者位置にいる場合、SF勝者位置に誰か移動していたら負け
+      const pos = playerPositions.find(p => p.slot === slotIndex)
+      const qfIndex = QF_WINNER_POSITIONS.findIndex(qfp =>
+        Math.abs(qfp.x - pos.x) < 10 && Math.abs(qfp.y - pos.y) < 10
+      )
+
+      if (qfIndex >= 0) {
+        // 対応するSF位置をチェック
+        const sfPos = SF_WINNER_POSITIONS[qfIndex]
+        const someoneAdvanced = playerPositions.some(p => {
+          return Math.abs(p.x - sfPos.x) < 10 && Math.abs(p.y - sfPos.y) < 10
+        })
+        return someoneAdvanced
+      }
+    } else if (round === 'sf-winner') {
+      // SF勝者位置にいる場合、決勝位置に誰か移動していたら負け
+      const pos = playerPositions.find(p => p.slot === slotIndex)
+      const sfIndex = SF_WINNER_POSITIONS.findIndex(sfp =>
+        Math.abs(sfp.x - pos.x) < 10 && Math.abs(sfp.y - pos.y) < 10
+      )
+
+      if (sfIndex >= 0) {
+        const finalPosIndex = sfIndex < 2 ? 0 : 1
+        const finalPos = FINAL_PLAYER_POSITIONS[finalPosIndex]
+        const someoneAdvanced = playerPositions.some(p => {
+          return Math.abs(p.x - finalPos.x) < 10 && Math.abs(p.y - finalPos.y) < 10
+        })
+        return someoneAdvanced
+      }
+    } else if (round === 'final') {
+      // 決勝で優勝者が決まっていたら負け
+      return champion && players[slotIndex] !== champion
     }
 
     return false
@@ -134,6 +222,7 @@ function Tournament({ players, playerPositions, champion, updatePlayer, advanceT
                 name={players[pos.slot]}
                 placeholder={`出場者 ${pos.slot + 1}`}
                 isInput={false}
+                isLoser={isLoser(pos.slot)}
                 onSelect={() => {
                   const { matchId } = getMatchInfo(pos.slot)
                   advanceToBracket(matchId, pos.slot)
@@ -164,7 +253,11 @@ function Tournament({ players, playerPositions, champion, updatePlayer, advanceT
                   animate={{ rotate: 360, scale: 1 }}
                   transition={{ duration: 1, ease: "elasticOut" }}
                 >
-                  🏆
+                  {TROPHY_IMAGE ? (
+                    <img src={TROPHY_IMAGE} alt="Trophy" className="trophy-image" />
+                  ) : (
+                    '🏆'
+                  )}
                 </motion.div>
                 <motion.div
                   className="champion-name"

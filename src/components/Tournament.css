@@ -38,6 +38,16 @@
   cursor: not-allowed;
 }
 
+.player.loser {
+  background: rgba(80, 20, 20, 0.8);
+  opacity: 0.7;
+}
+
+.player.loser .player-name {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .player.winner {
   border-color: #FFD700;
   box-shadow: 0 6px 25px rgba(255, 215, 0, 0.6);
@@ -83,6 +93,12 @@
 .trophy {
   font-size: 4rem;
   margin-bottom: 20px;
+}
+
+.trophy-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
 }
 
 .champion-name {
