@@ -54,10 +54,10 @@ export const QF_WINNER_POSITIONS = [
 
 // SF Winners display positions (after Round 2)
 export const SF_WINNER_POSITIONS = [
-  { x: 275, y: 620, index: 0 },  // SF0 winner (qfWinner[0] vs slot 0)
-  { x: 275, y: 1422, index: 1 }, // SF1 winner (qfWinner[1] vs slot 5)
-  { x: 675, y: 620, index: 2 },  // SF2 winner (qfWinner[2] vs slot 6)
-  { x: 675, y: 1422, index: 3 }, // SF3 winner (qfWinner[3] vs slot 11)
+  { x: 275, y: 600, index: 0 },  // SF0 winner (qfWinner[0] vs slot 0)
+  { x: 275, y: 1462, index: 1 }, // SF1 winner (qfWinner[1] vs slot 5)
+  { x: 675, y: 600, index: 2 },  // SF2 winner (qfWinner[2] vs slot 6)
+  { x: 675, y: 1462, index: 3 }, // SF3 winner (qfWinner[3] vs slot 11)
 ];
 
 // Final Players display positions (決勝戦)

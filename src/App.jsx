@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
-import { SLOT_POSITIONS, DEFAULT_PLAYERS } from './tournamentConfig'
+import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS } from './tournamentConfig'
 import './App.css'
 
 function App() {
@@ -9,22 +9,11 @@ function App() {
     return saved ? JSON.parse(saved) : DEFAULT_PLAYERS
   })
 
-  // Round 1 winners (QF0-3 winners)
-  const [qfWinners, setQfWinners] = useState(() => {
-    const saved = localStorage.getItem('qfWinners')
-    return saved ? JSON.parse(saved) : Array(4).fill('')
-  })
-
-  // Round 2 winners (SF0-3 winners: QF winner vs Seed)
-  const [sfWinners, setSfWinners] = useState(() => {
-    const saved = localStorage.getItem('sfWinners')
-    return saved ? JSON.parse(saved) : Array(4).fill('')
-  })
-
-  // Semi-final winners (進出者2人)
-  const [finalPlayers, setFinalPlayers] = useState(() => {
-    const saved = localStorage.getItem('finalPlayers')
-    return saved ? JSON.parse(saved) : ['', '']
+  // 各スロットの現在位置を管理
+  const [playerPositions, setPlayerPositions] = useState(() => {
+    const saved = localStorage.getItem('playerPositions')
+    if (saved) return JSON.parse(saved)
+    return SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y }))
   })
 
   const [champion, setChampion] = useState(() => {
@@ -36,16 +25,8 @@ function App() {
   }, [players])
 
   useEffect(() => {
-    localStorage.setItem('qfWinners', JSON.stringify(qfWinners))
-  }, [qfWinners])
-
-  useEffect(() => {
-    localStorage.setItem('sfWinners', JSON.stringify(sfWinners))
-  }, [sfWinners])
-
-  useEffect(() => {
-    localStorage.setItem('finalPlayers', JSON.stringify(finalPlayers))
-  }, [finalPlayers])
+    localStorage.setItem('playerPositions', JSON.stringify(playerPositions))
+  }, [playerPositions])
 
   useEffect(() => {
     if (champion) {
@@ -63,50 +44,52 @@ function App() {
     })
   }
 
-  const advanceToBracket = (matchId, winnerName) => {
-    // Round 1: QF0-3 → qfWinners
-    if (matchId === 'qf0') {
-      setQfWinners(prev => { const n = [...prev]; n[0] = winnerName; return n })
-    } else if (matchId === 'qf1') {
-      setQfWinners(prev => { const n = [...prev]; n[1] = winnerName; return n })
-    } else if (matchId === 'qf2') {
-      setQfWinners(prev => { const n = [...prev]; n[2] = winnerName; return n })
-    } else if (matchId === 'qf3') {
-      setQfWinners(prev => { const n = [...prev]; n[3] = winnerName; return n })
+  const getNextPosition = (matchId) => {
+    const positionMap = {
+      'qf0': QF_WINNER_POSITIONS[0],
+      'qf1': QF_WINNER_POSITIONS[1],
+      'qf2': QF_WINNER_POSITIONS[2],
+      'qf3': QF_WINNER_POSITIONS[3],
+      'sf0': SF_WINNER_POSITIONS[0],
+      'sf1': SF_WINNER_POSITIONS[1],
+      'sf2': SF_WINNER_POSITIONS[2],
+      'sf3': SF_WINNER_POSITIONS[3],
+      'semi0': FINAL_PLAYER_POSITIONS[0],
+      'semi1': FINAL_PLAYER_POSITIONS[1],
+      'final': { x: 630, y: 900 } // Champion position (center)
     }
-    // Round 2: SF0-3 → sfWinners
-    else if (matchId === 'sf0') {
-      setSfWinners(prev => { const n = [...prev]; n[0] = winnerName; return n })
-    } else if (matchId === 'sf1') {
-      setSfWinners(prev => { const n = [...prev]; n[1] = winnerName; return n })
-    } else if (matchId === 'sf2') {
-      setSfWinners(prev => { const n = [...prev]; n[2] = winnerName; return n })
-    } else if (matchId === 'sf3') {
-      setSfWinners(prev => { const n = [...prev]; n[3] = winnerName; return n })
-    }
-    // Round 3: Semi-finals → finalPlayers
-    else if (matchId === 'semi0') {
-      setFinalPlayers(prev => [winnerName, prev[1]])
-    } else if (matchId === 'semi1') {
-      setFinalPlayers(prev => [prev[0], winnerName])
-    }
-    // Final → champion
-    else if (matchId === 'final') {
-      setChampion(winnerName)
+    return positionMap[matchId]
+  }
+
+  const advanceToBracket = (matchId, slotIndex) => {
+    if (matchId === 'final') {
+      // 優勝者を設定
+      setChampion(players[slotIndex])
+      // 優勝者の位置を中央に移動
+      const nextPos = getNextPosition(matchId)
+      setPlayerPositions(prev =>
+        prev.map(p =>
+          p.slot === slotIndex ? { ...p, x: nextPos.x, y: nextPos.y } : p
+        )
+      )
+    } else {
+      // 勝者のスロットを次の位置に移動
+      const nextPos = getNextPosition(matchId)
+      setPlayerPositions(prev =>
+        prev.map(p =>
+          p.slot === slotIndex ? { ...p, x: nextPos.x, y: nextPos.y } : p
+        )
+      )
     }
   }
 
   const reset = () => {
     if (confirm('トーナメントをリセットしますか？')) {
       setPlayers(DEFAULT_PLAYERS)
-      setQfWinners(Array(4).fill(''))
-      setSfWinners(Array(4).fill(''))
-      setFinalPlayers(['', ''])
+      setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
       setChampion(null)
       localStorage.removeItem('tournamentPlayers')
-      localStorage.removeItem('qfWinners')
-      localStorage.removeItem('sfWinners')
-      localStorage.removeItem('finalPlayers')
+      localStorage.removeItem('playerPositions')
       localStorage.removeItem('champion')
     }
   }
@@ -115,9 +98,7 @@ function App() {
     <div className="app">
       <Tournament
         players={players}
-        qfWinners={qfWinners}
-        sfWinners={sfWinners}
-        finalPlayers={finalPlayers}
+        playerPositions={playerPositions}
         champion={champion}
         updatePlayer={updatePlayer}
         advanceToBracket={advanceToBracket}

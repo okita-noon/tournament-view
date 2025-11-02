@@ -16,7 +16,7 @@
 }
 
 .player {
-  background: linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(92, 0, 0, 0.95) 100%);
+  background: rgba(166, 43, 43, 1);
   padding: 15px 20px;
   border-radius: 8px;
   width: 100%;
@@ -24,8 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(139, 0, 0, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(239, 68, 68, 0.6);
   transition: all 0.3s ease;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .player.disabled {
-  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .player.winner {
