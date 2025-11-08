@@ -20,6 +20,12 @@ function App() {
     return localStorage.getItem('champion') || null
   })
 
+  // 試合結果の記録
+  const [matchResults, setMatchResults] = useState(() => {
+    const saved = localStorage.getItem('matchResults')
+    return saved ? JSON.parse(saved) : {}
+  })
+
   useEffect(() => {
     localStorage.setItem('tournamentPlayers', JSON.stringify(players))
   }, [players])
@@ -35,6 +41,10 @@ function App() {
       localStorage.removeItem('champion')
     }
   }, [champion])
+
+  useEffect(() => {
+    localStorage.setItem('matchResults', JSON.stringify(matchResults))
+  }, [matchResults])
 
   const updatePlayer = (slotIndex, name) => {
     setPlayers(prev => {
@@ -61,15 +71,23 @@ function App() {
     return positionMap[matchId]
   }
 
-  const advanceToBracket = (matchId, slotIndex) => {
+  const advanceToBracket = (matchId, winnerSlot, loserSlot = null) => {
+    // 試合結果を記録
+    if (loserSlot !== null) {
+      setMatchResults(prev => ({
+        ...prev,
+        [matchId]: { winner: winnerSlot, loser: loserSlot }
+      }))
+    }
+
     if (matchId === 'final') {
       // 優勝者を設定
-      setChampion(players[slotIndex])
+      setChampion(players[winnerSlot])
       // 優勝者の位置を中央に移動
       const nextPos = getNextPosition(matchId)
       setPlayerPositions(prev =>
         prev.map(p =>
-          p.slot === slotIndex ? { ...p, x: nextPos.x, y: nextPos.y } : p
+          p.slot === winnerSlot ? { ...p, x: nextPos.x, y: nextPos.y } : p
         )
       )
     } else {
@@ -77,7 +95,7 @@ function App() {
       const nextPos = getNextPosition(matchId)
       setPlayerPositions(prev =>
         prev.map(p =>
-          p.slot === slotIndex ? { ...p, x: nextPos.x, y: nextPos.y } : p
+          p.slot === winnerSlot ? { ...p, x: nextPos.x, y: nextPos.y } : p
         )
       )
     }
@@ -88,9 +106,11 @@ function App() {
       setPlayers(DEFAULT_PLAYERS)
       setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
       setChampion(null)
+      setMatchResults({})
       localStorage.removeItem('tournamentPlayers')
       localStorage.removeItem('playerPositions')
       localStorage.removeItem('champion')
+      localStorage.removeItem('matchResults')
     }
   }
 
@@ -100,6 +120,7 @@ function App() {
         players={players}
         playerPositions={playerPositions}
         champion={champion}
+        matchResults={matchResults}
         updatePlayer={updatePlayer}
         advanceToBracket={advanceToBracket}
       />
