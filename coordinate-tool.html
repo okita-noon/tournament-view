@@ -126,7 +126,7 @@
             <h3>使い方</h3>
             <ol>
                 <li>画像上の各スロット（赤い枠）の<strong>左上</strong>を順番にクリック</li>
-                <li>順番：左側の上から1→2→3→4→5→6、次に右側の上から1→2→3→4→5→6</li>
+                <li>順番：横並びのレイアウトに従って、左から右に順番にクリック</li>
                 <li>合計12箇所をクリック</li>
                 <li>完了したら「📋 座標をコピー」ボタンをクリック</li>
             </ol>
@@ -143,7 +143,7 @@
         </div>
 
         <div class="image-container" id="imageContainer">
-            <img src="image.png" id="tournamentImage" alt="Tournament">
+            <img src="/Tournament_4K.png" id="tournamentImage" alt="Tournament">
         </div>
 
         <div class="saved-coords">
@@ -154,18 +154,18 @@
 
     <script>
         const labels = [
-            '左側 - 1番上',
-            '左側 - 2番目',
-            '左側 - 3番目',
-            '左側 - 4番目',
-            '左側 - 5番目',
-            '左側 - 6番目（最下）',
-            '右側 - 1番上',
-            '右側 - 2番目',
-            '右側 - 3番目',
-            '右側 - 4番目',
-            '右側 - 5番目',
-            '右側 - 6番目（最下）'
+            'スロット 0',
+            'スロット 1',
+            'スロット 2',
+            'スロット 3',
+            'スロット 4',
+            'スロット 5',
+            'スロット 6',
+            'スロット 7',
+            'スロット 8',
+            'スロット 9',
+            'スロット 10',
+            'スロット 11'
         ];
 
         let coordinates = [];

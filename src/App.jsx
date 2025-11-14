@@ -11,8 +11,8 @@ function App() {
 
   // 各スロットの現在位置を管理
   const [playerPositions, setPlayerPositions] = useState(() => {
-    const saved = localStorage.getItem('playerPositions')
-    if (saved) return JSON.parse(saved)
+    // const saved = localStorage.getItem('playerPositions')
+    // if (saved) return JSON.parse(saved)
     return SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y }))
   })
 
@@ -30,9 +30,9 @@ function App() {
     localStorage.setItem('tournamentPlayers', JSON.stringify(players))
   }, [players])
 
-  useEffect(() => {
-    localStorage.setItem('playerPositions', JSON.stringify(playerPositions))
-  }, [playerPositions])
+  // useEffect(() => {
+  //   localStorage.setItem('playerPositions', JSON.stringify(playerPositions))
+  // }, [playerPositions])
 
   useEffect(() => {
     if (champion) {
@@ -66,7 +66,7 @@ function App() {
       'sf3': SF_WINNER_POSITIONS[3],
       'semi0': FINAL_PLAYER_POSITIONS[0],
       'semi1': FINAL_PLAYER_POSITIONS[1],
-      'final': { x: 630, y: 900 } // Champion position (center)
+      'final': { x: 22.135, y: 19.444 } // Champion position (center) (in percentage)
     }
     return positionMap[matchId]
   }

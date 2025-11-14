@@ -1,32 +1,39 @@
-// Tournament bracket positions based on background image
+// Background image dimensions (display size when coordinates were measured)
+export const IMAGE_WIDTH = 3840;
+export const IMAGE_HEIGHT = 2160;
+
+// Slot dimensions (in percentage of image)
+// 画像のアスペクト比: 1128 x 274 = 4.116:1
+export const SLOT_WIDTH = 28.5; // この値を変更すると高さも自動調整
+export const SLOT_HEIGHT = SLOT_WIDTH / 4.1; // 自動計算
+
+// Slot spacing (スロット間の間隔を含めた幅)
+const SLOT_SPACING = SLOT_WIDTH * 0.563; // 1.0 = ギャップなし, 1.1 = 10%のギャップ, など
+
+// Base positions for top and bottom rows (左端の位置のみ変更)
+const TOP_ROW_START_X = -3.2;
+const TOP_ROW_Y = 5.45;
+const BOTTOM_ROW_START_X = -3.2;
+const BOTTOM_ROW_Y = 72.2;
+
+
+// Tournament bracket positions based on background image (in percentage)
 export const SLOT_POSITIONS = [
-  // Left side - Top bracket (QF Match 0)
-  { x: 40, y: 495, slot: 0, isInput: true },
-  { x: 40, y: 690, slot: 1, isInput: true },
+  // Top row - left to right (各スロット間の差分 = SLOT_SPACING)
+  { x: TOP_ROW_START_X, y: TOP_ROW_Y, slot: 0, isInput: true },
+  { x: TOP_ROW_START_X + SLOT_SPACING, y: TOP_ROW_Y, slot: 1, isInput: true },
+  { x: TOP_ROW_START_X + SLOT_SPACING * 2, y: TOP_ROW_Y, slot: 2, isInput: true },
+  { x: TOP_ROW_START_X + SLOT_SPACING * 3, y: TOP_ROW_Y, slot: 3, isInput: true },
+  { x: TOP_ROW_START_X + SLOT_SPACING * 4, y: TOP_ROW_Y, slot: 4, isInput: true },
+  { x: TOP_ROW_START_X + SLOT_SPACING * 5, y: TOP_ROW_Y, slot: 5, isInput: true },
 
-  // Left side - Seeded player (SF slot)
-  { x: 40, y: 888, slot: 2, isInput: true },
-
-  // Left side - Bottom bracket (QF Match 1)
-  { x: 40, y: 1175, slot: 3, isInput: true },
-  { x: 40, y: 1373, slot: 4, isInput: true },
-
-  // Left side - Seeded player (SF slot)
-  { x: 40, y: 1570, slot: 5, isInput: true },
-
-  // Right side - Top bracket (QF Match 2)
-  { x: 913, y: 495, slot: 6, isInput: true },
-  { x: 913, y: 690, slot: 7, isInput: true },
-
-  // Right side - Seeded player (SF slot)
-  { x: 913, y: 888, slot: 8, isInput: true },
-
-  // Right side - Bottom bracket (QF Match 3)
-  { x: 913, y: 1175, slot: 9, isInput: true },
-  { x: 913, y: 1373, slot: 10, isInput: true },
-
-  // Right side - Seeded player (SF slot)
-  { x: 913, y: 1570, slot: 11, isInput: true }
+  // Bottom row - left to right (各スロット間の差分 = SLOT_SPACING)
+  { x: BOTTOM_ROW_START_X, y: BOTTOM_ROW_Y, slot: 6, isInput: true },
+  { x: BOTTOM_ROW_START_X + SLOT_SPACING, y: BOTTOM_ROW_Y, slot: 7, isInput: true },
+  { x: BOTTOM_ROW_START_X + SLOT_SPACING * 2, y: BOTTOM_ROW_Y, slot: 8, isInput: true },
+  { x: BOTTOM_ROW_START_X + SLOT_SPACING * 3, y: BOTTOM_ROW_Y, slot: 9, isInput: true },
+  { x: BOTTOM_ROW_START_X + SLOT_SPACING * 4, y: BOTTOM_ROW_Y, slot: 10, isInput: true },
+  { x: BOTTOM_ROW_START_X + SLOT_SPACING * 5, y: BOTTOM_ROW_Y, slot: 11, isInput: true }
 ];
 
 // Match structure: which slots compete, and where winner goes to next bracket
@@ -44,26 +51,26 @@ export const MATCHES = {
   sf3: { players: [11, 'qfWinner3'], bracketSlot: 'final1' },
 };
 
-// QF Winners display positions (between Round 1 and seeded players)
+// QF Winners display positions (between Round 1 and seeded players) (in percentage)
 export const QF_WINNER_POSITIONS = [
-  { x: 220, y: 790, index: 0 },  // QF0 winner (slots 1,2) → faces slot 0
-  { x: 220, y: 1274, index: 1 }, // QF1 winner (slots 3,4) → faces slot 5
-  { x: 730, y: 790, index: 2 },  // QF2 winner (slots 7,8) → faces slot 6
-  { x: 730, y: 1274, index: 3 }, // QF3 winner (slots 9,10) → faces slot 11
+  { x: 15.104, y: 7.269, index: 0 },   // QF0 winner
+  { x: 30.339, y: 7.222, index: 1 },  // QF1 winner
+  { x: 15.208, y: 31.620, index: 2 },   // QF2 winner
+  { x: 30.443, y: 31.759, index: 3 },  // QF3 winner
 ];
 
-// SF Winners display positions (after Round 2)
+// SF Winners display positions (after Round 2) (in percentage)
 export const SF_WINNER_POSITIONS = [
-  { x: 275, y: 600, index: 0 },  // SF0 winner (qfWinner[0] vs slot 0)
-  { x: 275, y: 1462, index: 1 }, // SF1 winner (qfWinner[1] vs slot 5)
-  { x: 675, y: 600, index: 2 },  // SF2 winner (qfWinner[2] vs slot 6)
-  { x: 675, y: 1462, index: 3 }, // SF3 winner (qfWinner[3] vs slot 11)
+  { x: 9.323, y: 10.278, index: 0 },   // SF0 winner
+  { x: 35.833, y: 10.370, index: 1 },  // SF1 winner
+  { x: 8.906, y: 28.565, index: 2 },   // SF2 winner
+  { x: 35.469, y: 28.611, index: 3 },  // SF3 winner
 ];
 
-// Final Players display positions (決勝戦)
+// Final Players display positions (決勝戦) (in percentage)
 export const FINAL_PLAYER_POSITIONS = [
-  { x: 325, y: 1025, index: 0 },  // Final player 0 (left semifinal winner)
-  { x: 700, y: 1025, index: 1 },  // Final player 1 (right semifinal winner)
+  { x: 22.135, y: 13.102, index: 0 },  // Final player 0
+  { x: 22.083, y: 25.602, index: 1 },  // Final player 1
 ];
 
 // Default player names for initial setup
@@ -82,13 +89,21 @@ export const DEFAULT_PLAYERS = [
   'マワシスギ',  // slot 11 - Seed
 ];
 
-// Background image dimensions (display size when coordinates were measured)
-export const IMAGE_WIDTH = 1260;
-export const IMAGE_HEIGHT = 1800;
-
-// Slot dimensions (approximate size of red boxes in image)
-export const SLOT_WIDTH = 310;
-export const SLOT_HEIGHT = 75;
-
 // Trophy image path (set to null to use default emoji 🏆)
 export const TROPHY_IMAGE = null; // Example: '/trophy.png'
+
+// Player slot images (set to null to use default HTML/CSS rendering)
+export const PLAYER_SLOT_IMAGES = {
+  0: '/iroziro.png',
+  1: '/Malimo.png',
+  2: '/HAL.png',
+  3: '/ALP.png',
+  4: '/Airi.png',
+  5: '/Beige.png',
+  6: '/Goat.png',
+  7: '/Katts.png',
+  8: '/Menowa.png',
+  9: '/Meves.png',
+  10: '/Rai.png',
+  11: '/mawashizuki.png',
+};

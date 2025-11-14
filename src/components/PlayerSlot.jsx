@@ -10,7 +10,8 @@ function PlayerSlot({
   onSelect,
   disabled,
   buttonText = '勝',
-  animateEntry
+  animateEntry,
+  slotImage = null
 }) {
   const [shouldAnimate, setShouldAnimate] = useState(false)
 
@@ -53,6 +54,41 @@ function PlayerSlot({
     }
   }
 
+  // 画像を使う場合
+  if (slotImage) {
+    return (
+      <motion.div
+        className={`player-image-slot ${disabled ? 'disabled' : 'clickable'} ${isLoser ? 'loser' : ''}`}
+        initial={shouldAnimate ? "initial" : false}
+        animate={shouldAnimate ? ["animate", "flash"] : {}}
+        variants={variants}
+        whileHover={!disabled ? { scale: 1.02 } : {}}
+        transition={{ duration: 0.2 }}
+        onClick={handleSelect}
+        style={{
+          cursor: disabled ? 'default' : 'pointer',
+          width: '100%',
+          height: '100%',
+          position: 'relative'
+        }}
+      >
+        <img
+          src={slotImage}
+          alt={name || placeholder}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+            opacity: isLoser ? 0.5 : 1,
+            filter: isLoser ? 'grayscale(100%)' : 'none'
+          }}
+        />
+      </motion.div>
+    )
+  }
+
+  // 従来のHTML/CSS表示
   return (
     <motion.div
       className={`player ${disabled ? 'disabled' : 'clickable'} ${isLoser ? 'loser' : ''}`}

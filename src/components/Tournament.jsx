@@ -1,25 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
 import PlayerSlot from './PlayerSlot'
-import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, TROPHY_IMAGE } from '../tournamentConfig'
+import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, SLOT_POSITIONS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, TROPHY_IMAGE, PLAYER_SLOT_IMAGES } from '../tournamentConfig'
 import './Tournament.css'
 
 function Tournament({ players, playerPositions, champion, matchResults, updatePlayer, advanceToBracket }) {
-  const [scale, setScale] = useState(1)
-
-  useEffect(() => {
-    const updateScale = () => {
-      const windowWidth = window.innerWidth
-      const containerPadding = 40
-      const availableWidth = windowWidth - containerPadding
-      const newScale = Math.min(1, availableWidth / IMAGE_WIDTH)
-      setScale(newScale)
-    }
-
-    updateScale()
-    window.addEventListener('resize', updateScale)
-    return () => window.removeEventListener('resize', updateScale)
-  }, [])
 
   // スロットの現在位置からラウンドを判定
   const getSlotRound = (slotIndex) => {
@@ -268,35 +252,146 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
     return Object.values(matchResults).some(result => result.loser === slotIndex)
   }
 
+  // matchIdから次の位置を取得
+  const getNextPositionFromMatch = (matchId) => {
+    const positionMap = {
+      'qf0': QF_WINNER_POSITIONS[0],
+      'qf1': QF_WINNER_POSITIONS[1],
+      'qf2': QF_WINNER_POSITIONS[2],
+      'qf3': QF_WINNER_POSITIONS[3],
+      'sf0': SF_WINNER_POSITIONS[0],
+      'sf1': SF_WINNER_POSITIONS[1],
+      'sf2': SF_WINNER_POSITIONS[2],
+      'sf3': SF_WINNER_POSITIONS[3],
+      'semi0': FINAL_PLAYER_POSITIONS[0],
+      'semi1': FINAL_PLAYER_POSITIONS[1],
+      'final': { x: 850, y: 420 }
+    }
+    return positionMap[matchId]
+  }
+
+  // 勝者の経路を計算（各スロットが通過した位置を順番に取得）
+  const getWinnerPath = (slotIndex) => {
+    const path = []
+
+    // matchResultsから、このスロットが勝った試合を時系列順に並べる
+    const wonMatches = Object.entries(matchResults)
+      .filter(([_, result]) => result.winner === slotIndex)
+      .sort((a, b) => {
+        // matchIdの順序でソート（qf -> sf -> semi -> final）
+        const order = { 'qf': 1, 'sf': 2, 'semi': 3, 'final': 4 }
+        const aPrefix = a[0].match(/^[a-z]+/)[0]
+        const bPrefix = b[0].match(/^[a-z]+/)[0]
+        return order[aPrefix] - order[bPrefix]
+      })
+
+    if (wonMatches.length === 0) return path
+
+    // 初期位置を取得（最初の試合から逆算）
+    const firstMatch = wonMatches[0]
+    const firstMatchId = firstMatch[0]
+
+    // 初期位置を追加
+    const initialPos = SLOT_POSITIONS.find(p => p.slot === slotIndex)
+    if (initialPos) {
+      path.push({ x: initialPos.x, y: initialPos.y, isInitial: true })
+    }
+
+    // 各試合の後の位置を追加
+    wonMatches.forEach(([matchId]) => {
+      const nextPos = getNextPositionFromMatch(matchId)
+      if (nextPos) {
+        path.push({ x: nextPos.x, y: nextPos.y, isInitial: false })
+      }
+    })
+
+    return path
+  }
+
+  // SVGパス文字列を生成（%ベース）
+  const createPathString = (positions, slotIndex) => {
+    if (positions.length < 2) return ''
+
+    // 各位置のスロット中心点を計算（%）
+    const adjustedPositions = positions.map((pos) => {
+      // スロットの中心点を計算
+      return {
+        x: pos.x + SLOT_WIDTH / 2,
+        y: pos.y + SLOT_HEIGHT / 2
+      }
+    })
+
+    // SVG path文字列を構築（viewBox座標系で0-100の範囲）
+    let pathString = `M ${adjustedPositions[0].x} ${adjustedPositions[0].y}`
+
+    for (let i = 1; i < adjustedPositions.length; i++) {
+      pathString += ` L ${adjustedPositions[i].x} ${adjustedPositions[i].y}`
+    }
+
+    return pathString
+  }
+
   return (
     <div className="tournament-container">
       <div className="tournament-bracket-absolute" style={{
-        width: `${IMAGE_WIDTH}px`,
-        height: `${IMAGE_HEIGHT}px`,
-        position: 'relative',
-        transform: `scale(${scale})`,
-        transformOrigin: 'top center'
+        width: '100%',
+        paddingTop: `${(IMAGE_HEIGHT / IMAGE_WIDTH) * 100}%`,
+        position: 'relative'
       }}>
+        {/* SVG layer for winner paths */}
+        <svg
+          className="winner-paths-svg"
+          viewBox="0 0 100 56.25"
+          preserveAspectRatio="xMidYMid meet"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1
+          }}
+        >
+          {playerPositions.map((pos) => {
+            const path = getWinnerPath(pos.slot)
+            if (path.length < 2) return null
+
+            const pathString = createPathString(path, pos.slot)
+            if (!pathString) return null
+
+            return (
+              <motion.path
+                key={`path-${pos.slot}`}
+                d={pathString}
+                stroke="#ff0000"
+                strokeWidth="0.2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.8 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+              />
+            )
+          })}
+        </svg>
+
         {/* Render all 12 slots with animated positions */}
         {playerPositions.map((pos) => {
-          // offsetXは初期位置の時だけ適用
-          const round = getSlotRound(pos.slot)
-          const isLeftColumn = pos.slot <= 5
-          const offsetX = (round === 'initial' && isLeftColumn) ? 80 : 0
-          const slotWidth = SLOT_WIDTH - 80
-
           return (
             <motion.div
               key={pos.slot}
               animate={{
-                left: `${pos.x + offsetX}px`,
-                top: `${pos.y}px`
+                left: `${pos.x}%`,
+                top: `${pos.y}%`
               }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
               style={{
                 position: 'absolute',
-                width: `${slotWidth}px`,
-                height: `${SLOT_HEIGHT}px`
+                width: `${SLOT_WIDTH}%`,
+                height: `${SLOT_HEIGHT}%`,
+                zIndex: 2
               }}
             >
               <PlayerSlot
@@ -312,6 +407,7 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
                 disabled={!canAdvanceToBracket(pos.slot)}
                 buttonText="勝"
                 animateEntry={false}
+                slotImage={PLAYER_SLOT_IMAGES[pos.slot]}
               />
             </motion.div>
           )
