@@ -1,30 +1,36 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
 import PlayerSlot from './PlayerSlot'
-import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, SLOT_POSITIONS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, TROPHY_IMAGE, PLAYER_SLOT_IMAGES } from '../tournamentConfig'
+import { IMAGE_WIDTH, IMAGE_HEIGHT, SLOT_WIDTH, SLOT_HEIGHT, SLOT_POSITIONS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, TROPHY_IMAGE, PLAYER_SLOT_IMAGES, MATCH_PATHS, DEBUG_COORDINATE_PICKER } from '../tournamentConfig'
 import './Tournament.css'
 
 function Tournament({ players, playerPositions, champion, matchResults, updatePlayer, advanceToBracket }) {
+  const [clickedCoord, setClickedCoord] = useState(null)
 
   // スロットの現在位置からラウンドを判定
   const getSlotRound = (slotIndex) => {
     const pos = playerPositions.find(p => p.slot === slotIndex)
     if (!pos) return 'initial'
 
+    // pos.x, pos.yは左上座標なので、中心座標に変換して比較
+    const centerX = pos.x + (SLOT_WIDTH / 2)
+    const centerY = pos.y + (SLOT_HEIGHT / 2)
+
     // QF Winner positions
     const qfPos = QF_WINNER_POSITIONS.find(qfp =>
-      Math.abs(qfp.x - pos.x) < 10 && Math.abs(qfp.y - pos.y) < 10
+      Math.abs(qfp.x - centerX) < 1 && Math.abs(qfp.y - centerY) < 1
     )
     if (qfPos) return 'qf-winner'
 
     // SF Winner positions
     const sfPos = SF_WINNER_POSITIONS.find(sfp =>
-      Math.abs(sfp.x - pos.x) < 10 && Math.abs(sfp.y - pos.y) < 10
+      Math.abs(sfp.x - centerX) < 1 && Math.abs(sfp.y - centerY) < 1
     )
     if (sfPos) return 'sf-winner'
 
     // Final positions
     const finalPos = FINAL_PLAYER_POSITIONS.find(fp =>
-      Math.abs(fp.x - pos.x) < 10 && Math.abs(fp.y - pos.y) < 10
+      Math.abs(fp.x - centerX) < 1 && Math.abs(fp.y - centerY) < 1
     )
     if (finalPos) return 'final'
 
@@ -48,22 +54,29 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
       const qfIndex = seedToQfMap[slotIndex]
       if (qfIndex !== undefined) {
         const qfPos = QF_WINNER_POSITIONS[qfIndex]
-        const opponentAtQfPos = playerPositions.find(p =>
-          Math.abs(p.x - qfPos.x) < 10 && Math.abs(p.y - qfPos.y) < 10
-        )
+        // qfPosは中心座標、pは左上座標なので変換して比較
+        const opponentAtQfPos = playerPositions.find(p => {
+          const pCenterX = p.x + (SLOT_WIDTH / 2)
+          const pCenterY = p.y + (SLOT_HEIGHT / 2)
+          return Math.abs(pCenterX - qfPos.x) < 1 && Math.abs(pCenterY - qfPos.y) < 1
+        })
         return opponentAtQfPos ? opponentAtQfPos.slot : null
       }
     } else if (round === 'qf-winner') {
       // QF勝者位置にいる場合、対応するシードと対戦
+      const centerX = pos.x + (SLOT_WIDTH / 2)
+      const centerY = pos.y + (SLOT_HEIGHT / 2)
       const qfIndex = QF_WINNER_POSITIONS.findIndex(qfp =>
-        Math.abs(qfp.x - pos.x) < 10 && Math.abs(qfp.y - pos.y) < 10
+        Math.abs(qfp.x - centerX) < 1 && Math.abs(qfp.y - centerY) < 1
       )
       const qfToSeedMap = { 0: 0, 1: 5, 2: 6, 3: 11 }
       return qfToSeedMap[qfIndex]
     } else if (round === 'sf-winner') {
       // SF勝者位置にいる場合、対応する位置にいる別のSF勝者と対戦
+      const centerX = pos.x + (SLOT_WIDTH / 2)
+      const centerY = pos.y + (SLOT_HEIGHT / 2)
       const sfIndex = SF_WINNER_POSITIONS.findIndex(sfp =>
-        Math.abs(sfp.x - pos.x) < 10 && Math.abs(sfp.y - pos.y) < 10
+        Math.abs(sfp.x - centerX) < 1 && Math.abs(sfp.y - centerY) < 1
       )
 
       // Semi0: SF0勝者(index 0) vs SF1勝者(index 1)
@@ -76,21 +89,27 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
 
       if (opponentSfIndex !== undefined) {
         const opponentSfPos = SF_WINNER_POSITIONS[opponentSfIndex]
-        const opponentAtSfPos = playerPositions.find(p =>
-          Math.abs(p.x - opponentSfPos.x) < 10 && Math.abs(p.y - opponentSfPos.y) < 10
-        )
+        const opponentAtSfPos = playerPositions.find(p => {
+          const pCenterX = p.x + (SLOT_WIDTH / 2)
+          const pCenterY = p.y + (SLOT_HEIGHT / 2)
+          return Math.abs(pCenterX - opponentSfPos.x) < 1 && Math.abs(pCenterY - opponentSfPos.y) < 1
+        })
         return opponentAtSfPos ? opponentAtSfPos.slot : null
       }
     } else if (round === 'final') {
       // 決勝位置にいる場合、もう一方の決勝位置にいるプレイヤーと対戦
+      const centerX = pos.x + (SLOT_WIDTH / 2)
+      const centerY = pos.y + (SLOT_HEIGHT / 2)
       const finalIndex = FINAL_PLAYER_POSITIONS.findIndex(fp =>
-        Math.abs(fp.x - pos.x) < 10 && Math.abs(fp.y - pos.y) < 10
+        Math.abs(fp.x - centerX) < 1 && Math.abs(fp.y - centerY) < 1
       )
       const opponentFinalIndex = finalIndex === 0 ? 1 : 0
       const opponentFinalPos = FINAL_PLAYER_POSITIONS[opponentFinalIndex]
-      const opponentAtFinalPos = playerPositions.find(p =>
-        Math.abs(p.x - opponentFinalPos.x) < 10 && Math.abs(p.y - opponentFinalPos.y) < 10
-      )
+      const opponentAtFinalPos = playerPositions.find(p => {
+        const pCenterX = p.x + (SLOT_WIDTH / 2)
+        const pCenterY = p.y + (SLOT_HEIGHT / 2)
+        return Math.abs(pCenterX - opponentFinalPos.x) < 1 && Math.abs(pCenterY - opponentFinalPos.y) < 1
+      })
       return opponentAtFinalPos ? opponentAtFinalPos.slot : null
     }
 
@@ -120,16 +139,20 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
       return matchMap[slotIndex]
     } else if (round === 'qf-winner') {
       // QF勝者がシード選手と対戦
+      const centerX = pos.x + (SLOT_WIDTH / 2)
+      const centerY = pos.y + (SLOT_HEIGHT / 2)
       const qfIndex = QF_WINNER_POSITIONS.findIndex(qfp =>
-        Math.abs(qfp.x - pos.x) < 10 && Math.abs(qfp.y - pos.y) < 10
+        Math.abs(qfp.x - centerX) < 1 && Math.abs(qfp.y - centerY) < 1
       )
       if (qfIndex >= 0) {
         return { matchId: `sf${qfIndex}`, opponentSlot: -1 }
       }
     } else if (round === 'sf-winner') {
       // SF Winner同士の準決勝
+      const centerX = pos.x + (SLOT_WIDTH / 2)
+      const centerY = pos.y + (SLOT_HEIGHT / 2)
       const sfIndex = SF_WINNER_POSITIONS.findIndex(sfp =>
-        Math.abs(sfp.x - pos.x) < 10 && Math.abs(sfp.y - pos.y) < 10
+        Math.abs(sfp.x - centerX) < 1 && Math.abs(sfp.y - centerY) < 1
       )
       if (sfIndex === 0 || sfIndex === 1) {
         return { matchId: 'semi0', opponentSlot: -1 }
@@ -270,74 +293,159 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
     return positionMap[matchId]
   }
 
-  // 勝者の経路を計算（各スロットが通過した位置を順番に取得）
-  const getWinnerPath = (slotIndex) => {
-    const path = []
+  // 試合IDと勝者スロットから経路キーを決定
+  const getPathKeyForMatch = (matchId, winnerSlot) => {
+    // Quarter Finals
+    if (matchId === 'qf0') return winnerSlot === 1 ? 'qf0_slot1' : 'qf0_slot2'
+    if (matchId === 'qf1') return winnerSlot === 3 ? 'qf1_slot3' : 'qf1_slot4'
+    if (matchId === 'qf2') return winnerSlot === 7 ? 'qf2_slot7' : 'qf2_slot8'
+    if (matchId === 'qf3') return winnerSlot === 9 ? 'qf3_slot9' : 'qf3_slot10'
 
-    // matchResultsから、このスロットが勝った試合を時系列順に並べる
-    const wonMatches = Object.entries(matchResults)
-      .filter(([_, result]) => result.winner === slotIndex)
-      .sort((a, b) => {
-        // matchIdの順序でソート（qf -> sf -> semi -> final）
-        const order = { 'qf': 1, 'sf': 2, 'semi': 3, 'final': 4 }
-        const aPrefix = a[0].match(/^[a-z]+/)[0]
-        const bPrefix = b[0].match(/^[a-z]+/)[0]
-        return order[aPrefix] - order[bPrefix]
-      })
+    // Semi Finals
+    if (matchId === 'sf0') return winnerSlot === 0 ? 'sf0_slot0' : 'sf0_qfWinner0'
+    if (matchId === 'sf1') return winnerSlot === 5 ? 'sf1_slot5' : 'sf1_qfWinner1'
+    if (matchId === 'sf2') return winnerSlot === 6 ? 'sf2_slot6' : 'sf2_qfWinner2'
+    if (matchId === 'sf3') return winnerSlot === 11 ? 'sf3_slot11' : 'sf3_qfWinner3'
 
-    if (wonMatches.length === 0) return path
+    // Semi-semi finals (準決勝)
+    if (matchId === 'semi0') {
+      // winnerSlotの現在位置がSF Winner 0か1かを判定
+      const pos = playerPositions.find(p => p.slot === winnerSlot)
+      if (!pos) return null
 
-    // 初期位置を取得（最初の試合から逆算）
-    const firstMatch = wonMatches[0]
-    const firstMatchId = firstMatch[0]
+      // SF Winner 0 or 1の位置にいるか判定
+      const isSfWinner0 = Math.abs(pos.x - SF_WINNER_POSITIONS[0].x) < 1 &&
+                          Math.abs(pos.y - SF_WINNER_POSITIONS[0].y) < 1
+      return isSfWinner0 ? 'semi0_sfWinner0' : 'semi0_sfWinner1'
+    }
+    if (matchId === 'semi1') {
+      const pos = playerPositions.find(p => p.slot === winnerSlot)
+      if (!pos) return null
 
-    // 初期位置を追加
-    const initialPos = SLOT_POSITIONS.find(p => p.slot === slotIndex)
-    if (initialPos) {
-      path.push({ x: initialPos.x, y: initialPos.y, isInitial: true })
+      const isSfWinner2 = Math.abs(pos.x - SF_WINNER_POSITIONS[2].x) < 1 &&
+                          Math.abs(pos.y - SF_WINNER_POSITIONS[2].y) < 1
+      return isSfWinner2 ? 'semi1_sfWinner2' : 'semi1_sfWinner3'
     }
 
-    // 各試合の後の位置を追加
-    wonMatches.forEach(([matchId]) => {
-      const nextPos = getNextPositionFromMatch(matchId)
-      if (nextPos) {
-        path.push({ x: nextPos.x, y: nextPos.y, isInitial: false })
-      }
-    })
+    // Finals
+    if (matchId === 'final') {
+      const pos = playerPositions.find(p => p.slot === winnerSlot)
+      if (!pos) return null
 
-    return path
+      const isFinalPlayer0 = Math.abs(pos.x - FINAL_PLAYER_POSITIONS[0].x) < 1 &&
+                             Math.abs(pos.y - FINAL_PLAYER_POSITIONS[0].y) < 1
+      return isFinalPlayer0 ? 'final_player0' : 'final_player1'
+    }
+
+    return null
   }
 
-  // SVGパス文字列を生成（%ベース）
-  const createPathString = (positions, slotIndex) => {
-    if (positions.length < 2) return ''
+  // 全ての勝者経路を取得
+  const getAllWinnerPaths = () => {
+    const paths = []
 
-    // 各位置のスロット中心点を計算（%）
-    const adjustedPositions = positions.map((pos) => {
-      // スロットの中心点を計算
-      return {
-        x: pos.x + SLOT_WIDTH / 2,
-        y: pos.y + SLOT_HEIGHT / 2
+    Object.entries(matchResults).forEach(([matchId, result]) => {
+      const pathKey = getPathKeyForMatch(matchId, result.winner)
+      if (pathKey && MATCH_PATHS[pathKey]) {
+        paths.push({
+          key: `${matchId}-${result.winner}`,
+          waypoints: MATCH_PATHS[pathKey]
+        })
       }
     })
 
-    // SVG path文字列を構築（viewBox座標系で0-100の範囲）
-    let pathString = `M ${adjustedPositions[0].x} ${adjustedPositions[0].y}`
+    return paths
+  }
 
-    for (let i = 1; i < adjustedPositions.length; i++) {
-      pathString += ` L ${adjustedPositions[i].x} ${adjustedPositions[i].y}`
+  // SVGパス文字列を生成（%ベースの経由点から）
+  const createPathString = (waypoints) => {
+    if (!waypoints || waypoints.length < 2) return ''
+
+    // y座標をviewBoxのアスペクト比に合わせて変換 (100% -> 56.25%)
+    const aspectRatio = IMAGE_HEIGHT / IMAGE_WIDTH // 0.5625
+    const convertedWaypoints = waypoints.map(wp => ({
+      x: wp.x,
+      y: wp.y * aspectRatio
+    }))
+
+    // SVG path文字列を構築（viewBox座標系で0-100 x 0-56.25の範囲）
+    let pathString = `M ${convertedWaypoints[0].x} ${convertedWaypoints[0].y}`
+
+    for (let i = 1; i < convertedWaypoints.length; i++) {
+      pathString += ` L ${convertedWaypoints[i].x} ${convertedWaypoints[i].y}`
     }
 
     return pathString
   }
 
+  // デバッグ用: クリックで座標を取得
+  const handleCoordinateClick = (e) => {
+    if (!DEBUG_COORDINATE_PICKER) return
+
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    // %に変換
+    const xPercent = parseFloat(((x / rect.width) * 100).toFixed(3))
+    const yPercent = parseFloat(((y / rect.height) * 100).toFixed(3))
+
+    setClickedCoord({ x: xPercent, y: yPercent })
+    console.log(`クリック座標: { x: ${xPercent}, y: ${yPercent} }`)
+  }
+
   return (
     <div className="tournament-container">
-      <div className="tournament-bracket-absolute" style={{
-        width: '100%',
-        paddingTop: `${(IMAGE_HEIGHT / IMAGE_WIDTH) * 100}%`,
-        position: 'relative'
-      }}>
+      {/* デバッグ用: 座標表示 */}
+      {DEBUG_COORDINATE_PICKER && clickedCoord && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          background: 'rgba(0, 0, 0, 0.9)',
+          color: '#0f0',
+          padding: '15px',
+          borderRadius: '8px',
+          fontFamily: 'monospace',
+          fontSize: '14px',
+          zIndex: 10000,
+          border: '2px solid #0f0'
+        }}>
+          <div>クリック座標 (中心):</div>
+          <div>x: {clickedCoord.x}%</div>
+          <div>y: {clickedCoord.y}%</div>
+          <div style={{ marginTop: '10px', fontSize: '12px', color: '#aaa' }}>
+            <div>左上座標:</div>
+            <div>x: {(clickedCoord.x - SLOT_WIDTH / 2).toFixed(3)}%</div>
+            <div>y: {(clickedCoord.y - SLOT_HEIGHT / 2).toFixed(3)}%</div>
+          </div>
+          <button
+            onClick={() => setClickedCoord(null)}
+            style={{
+              marginTop: '10px',
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #0f0',
+              padding: '5px 10px',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            閉じる
+          </button>
+        </div>
+      )}
+
+      <div
+        className="tournament-bracket-absolute"
+        onClick={handleCoordinateClick}
+        style={{
+          width: '100%',
+          paddingTop: `${(IMAGE_HEIGHT / IMAGE_WIDTH) * 100}%`,
+          position: 'relative',
+          cursor: DEBUG_COORDINATE_PICKER ? 'crosshair' : 'default'
+        }}
+      >
         {/* SVG layer for winner paths */}
         <svg
           className="winner-paths-svg"
@@ -353,25 +461,22 @@ function Tournament({ players, playerPositions, champion, matchResults, updatePl
             zIndex: 1
           }}
         >
-          {playerPositions.map((pos) => {
-            const path = getWinnerPath(pos.slot)
-            if (path.length < 2) return null
-
-            const pathString = createPathString(path, pos.slot)
+          {getAllWinnerPaths().map(({ key, waypoints }) => {
+            const pathString = createPathString(waypoints)
             if (!pathString) return null
 
             return (
               <motion.path
-                key={`path-${pos.slot}`}
+                key={key}
                 d={pathString}
                 stroke="#ff0000"
-                strokeWidth="0.2"
+                strokeWidth="1.1"
                 fill="none"
                 strokeLinecap="round"
-                strokeLinejoin="round"
+                strokeLinejoin="miter"
                 initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.8 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                animate={{ pathLength: 1, opacity: 0.9 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
               />
             )
           })}

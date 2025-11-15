@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>経路座標測定ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+        .info {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        .path-input {
+            margin-bottom: 10px;
+        }
+        .path-input label {
+            display: inline-block;
+            width: 120px;
+            color: #FFD700;
+        }
+        .path-input input {
+            background: #333;
+            border: 1px solid #666;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .coordinates {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #4CAF50;
+        }
+        .image-container {
+            position: relative;
+            display: inline-block;
+            cursor: crosshair;
+            border: 2px solid #FFD700;
+        }
+        .image-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        .image-container svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .marker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FF0000;
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFD700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .saved-coords {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .saved-coords h2 {
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        .coord-list {
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.reset {
+            background: #f44336;
+        }
+        button.reset:hover {
+            background: #da190b;
+        }
+        button.finish {
+            background: #2196F3;
+        }
+        button.finish:hover {
+            background: #0b7dda;
+        }
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        .current-path {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛤️ 経路座標測定ツール</h1>
+
+        <div class="instructions">
+            <h3>使い方</h3>
+            <ol>
+                <li>経路名を入力（例：qf0, sf0など）</li>
+                <li>白線に沿って経由点を順番にクリック（出発→経由→到着）</li>
+                <li>経路が完成したら「✅ 経路完了」をクリック</li>
+                <li>次の経路名を入力して繰り返し</li>
+                <li>全て完了したら「📋 全経路をコピー」をクリック</li>
+            </ol>
+            <p style="margin-top: 10px; color: #FFD700;">※ 直線区間の両端と、曲がり角をクリックしてください</p>
+        </div>
+
+        <div class="info">
+            <div class="path-input">
+                <label>現在の経路:</label>
+                <input type="text" id="pathName" placeholder="例: qf0" value="qf0">
+            </div>
+            <div>マウス位置: <span id="current-coords">-</span></div>
+            <div class="coordinates">
+                現在の経路: <span class="current-path" id="current-path">未設定</span>
+                (<span id="point-count">0</span>点)
+            </div>
+            <div style="margin-top: 10px;">
+                <button class="finish" onclick="finishCurrentPath()">✅ 経路完了</button>
+                <button class="reset" onclick="resetCurrentPath()">🔄 現在の経路をリセット</button>
+                <button onclick="copyAllPaths()">📋 全経路をコピー (%)</button>
+                <button class="reset" onclick="resetAll()">🗑️ 全てリセット</button>
+            </div>
+        </div>
+
+        <div class="image-container" id="imageContainer">
+            <img src="/Tournament_4K.png" id="tournamentImage" alt="Tournament">
+            <svg id="pathSvg"></svg>
+        </div>
+
+        <div class="saved-coords">
+            <h2>記録された経路</h2>
+            <div class="coord-list" id="coordList">経路を記録してください...</div>
+        </div>
+    </div>
+
+    <script>
+        const IMAGE_WIDTH = 3840;
+        const IMAGE_HEIGHT = 2160;
+
+        let allPaths = {};  // 全経路を保存
+        let currentPoints = [];  // 現在の経路のポイント
+        let currentPathName = '';
+
+        const imageContainer = document.getElementById('imageContainer');
+        const image = document.getElementById('tournamentImage');
+        const pathSvg = document.getElementById('pathSvg');
+        const currentCoordsDisplay = document.getElementById('current-coords');
+        const currentPathDisplay = document.getElementById('current-path');
+        const pointCountDisplay = document.getElementById('point-count');
+        const coordListDisplay = document.getElementById('coordList');
+        const pathNameInput = document.getElementById('pathName');
+
+        // 現在の経路名を更新
+        pathNameInput.addEventListener('input', () => {
+            currentPathName = pathNameInput.value;
+            updateCurrentPathDisplay();
+        });
+
+        // 初期値設定
+        currentPathName = pathNameInput.value;
+        updateCurrentPathDisplay();
+
+        // マウス移動で座標表示（%も表示）
+        imageContainer.addEventListener('mousemove', (e) => {
+            const rect = image.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xPercent = ((x / rect.width) * 100).toFixed(2);
+            const yPercent = ((y / rect.height) * 100).toFixed(2);
+            currentCoordsDisplay.textContent = `x: ${Math.round(x)}px (${xPercent}%), y: ${Math.round(y)}px (${yPercent}%)`;
+        });
+
+        // クリックで座標記録
+        imageContainer.addEventListener('click', (e) => {
+            if (!currentPathName) {
+                alert('経路名を入力してください');
+                return;
+            }
+
+            const rect = image.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // %に変換
+            const xPercent = parseFloat(((x / rect.width) * 100).toFixed(2));
+            const yPercent = parseFloat(((y / rect.height) * 100).toFixed(2));
+
+            // マーカーを追加
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.style.left = x + 'px';
+            marker.style.top = y + 'px';
+            marker.dataset.pathId = 'current';
+            imageContainer.appendChild(marker);
+
+            // ラベルを追加
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = `${currentPoints.length + 1}`;
+            label.style.left = (x + 10) + 'px';
+            label.style.top = (y - 10) + 'px';
+            label.dataset.pathId = 'current';
+            imageContainer.appendChild(label);
+
+            // 座標を保存
+            currentPoints.push({ x: xPercent, y: yPercent });
+            pointCountDisplay.textContent = currentPoints.length;
+
+            // SVGパスを更新
+            updateSvgPath();
+        });
+
+        function updateCurrentPathDisplay() {
+            currentPathDisplay.textContent = currentPathName || '未設定';
+        }
+
+        function updateSvgPath() {
+            if (currentPoints.length < 2) {
+                pathSvg.innerHTML = '';
+                return;
+            }
+
+            const rect = image.getBoundingClientRect();
+            let pathD = '';
+
+            currentPoints.forEach((point, index) => {
+                const x = (point.x / 100) * rect.width;
+                const y = (point.y / 100) * rect.height;
+
+                if (index === 0) {
+                    pathD = `M ${x} ${y}`;
+                } else {
+                    pathD += ` L ${x} ${y}`;
+                }
+            });
+
+            pathSvg.innerHTML = `<path d="${pathD}" stroke="#FF0000" stroke-width="3" fill="none" opacity="0.7"/>`;
+        }
+
+        function finishCurrentPath() {
+            if (!currentPathName) {
+                alert('経路名を入力してください');
+                return;
+            }
+
+            if (currentPoints.length < 2) {
+                alert('最低2点以上必要です');
+                return;
+            }
+
+            // 経路を保存
+            allPaths[currentPathName] = [...currentPoints];
+
+            // 現在の経路をクリア
+            currentPoints = [];
+            pointCountDisplay.textContent = '0';
+
+            // マーカーとラベルを削除
+            const markers = imageContainer.querySelectorAll('[data-path-id="current"]');
+            markers.forEach(marker => marker.remove());
+
+            // SVGをクリア
+            pathSvg.innerHTML = '';
+
+            // 次の経路名を提案
+            const nextPath = suggestNextPath(currentPathName);
+            pathNameInput.value = nextPath;
+            currentPathName = nextPath;
+            updateCurrentPathDisplay();
+
+            // 保存された経路を表示
+            updateCoordinatesList();
+
+            alert(`経路「${Object.keys(allPaths)[Object.keys(allPaths).length - 1]}」を保存しました！\n次の経路: ${nextPath}`);
+        }
+
+        function suggestNextPath(current) {
+            // 次の経路を自動提案
+            const match = current.match(/^([a-z]+)(\d+)$/);
+            if (match) {
+                const prefix = match[1];
+                const num = parseInt(match[2]);
+                return `${prefix}${num + 1}`;
+            }
+            return '';
+        }
+
+        function resetCurrentPath() {
+            if (confirm('現在の経路をリセットしますか？')) {
+                currentPoints = [];
+                pointCountDisplay.textContent = '0';
+
+                const markers = imageContainer.querySelectorAll('[data-path-id="current"]');
+                markers.forEach(marker => marker.remove());
+
+                pathSvg.innerHTML = '';
+            }
+        }
+
+        function resetAll() {
+            if (confirm('全ての経路をリセットしますか？')) {
+                allPaths = {};
+                currentPoints = [];
+                pointCountDisplay.textContent = '0';
+
+                const markers = imageContainer.querySelectorAll('.marker, .label');
+                markers.forEach(marker => marker.remove());
+
+                pathSvg.innerHTML = '';
+                updateCoordinatesList();
+            }
+        }
+
+        function updateCoordinatesList() {
+            if (Object.keys(allPaths).length === 0) {
+                coordListDisplay.textContent = '経路を記録してください...';
+                return;
+            }
+
+            let html = '<pre style="color: #4CAF50;">export const MATCH_PATHS = {\n';
+
+            Object.entries(allPaths).forEach(([pathName, points], index) => {
+                html += `  '${pathName}': [\n`;
+                points.forEach((point, pIndex) => {
+                    html += `    { x: ${point.x}, y: ${point.y} }${pIndex < points.length - 1 ? ',' : ''}\n`;
+                });
+                html += `  ]${index < Object.keys(allPaths).length - 1 ? ',' : ''}\n`;
+            });
+
+            html += '};</pre>';
+
+            coordListDisplay.innerHTML = html;
+        }
+
+        function copyAllPaths() {
+            if (Object.keys(allPaths).length === 0) {
+                alert('経路が記録されていません');
+                return;
+            }
+
+            let text = 'export const MATCH_PATHS = {\n';
+
+            Object.entries(allPaths).forEach(([pathName, points], index) => {
+                text += `  '${pathName}': [\n`;
+                points.forEach((point, pIndex) => {
+                    text += `    { x: ${point.x}, y: ${point.y} }${pIndex < points.length - 1 ? ',' : ''}\n`;
+                });
+                text += `  ]${index < Object.keys(allPaths).length - 1 ? ',' : ''}\n`;
+            });
+
+            text += '};';
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('全経路をクリップボードにコピーしました！');
+            }).catch(() => {
+                alert('コピーに失敗しました。手動でコピーしてください。');
+            });
+        }
+    </script>
+</body>
+</html>

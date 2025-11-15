@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
-import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS } from './tournamentConfig'
+import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, SLOT_WIDTH, SLOT_HEIGHT } from './tournamentConfig'
 import './App.css'
 
 function App() {
@@ -25,6 +25,36 @@ function App() {
     const saved = localStorage.getItem('matchResults')
     return saved ? JSON.parse(saved) : {}
   })
+
+  // 開発用: tournamentConfig.jsの変更を自動検知してリセット
+  useEffect(() => {
+    if (import.meta.hot) {
+      import.meta.hot.accept('./tournamentConfig.js', async (newModule) => {
+        console.log('tournamentConfig.js が更新されました - 位置を再読み込み')
+        if (newModule) {
+          setPlayerPositions(newModule.SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
+        } else {
+          // フォールバック: ページリロード
+          window.location.reload()
+        }
+      })
+    }
+  }, [])
+
+  // 開発用: キーボードショートカット (Ctrl/Cmd + Shift + R) で位置をリセット
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ctrl+Shift+R または Cmd+Shift+R
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+        e.preventDefault()
+        console.log('位置をリセット: tournamentConfig.jsから再読み込み')
+        setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('tournamentPlayers', JSON.stringify(players))
@@ -80,22 +110,27 @@ function App() {
       }))
     }
 
+    // 次の位置を取得（中心座標）
+    const nextPos = getNextPosition(matchId)
+
+    // 中心座標を左上座標に変換
+    const leftTopX = nextPos.x - (SLOT_WIDTH / 2)
+    const leftTopY = nextPos.y - (SLOT_HEIGHT / 2)
+
     if (matchId === 'final') {
       // 優勝者を設定
       setChampion(players[winnerSlot])
       // 優勝者の位置を中央に移動
-      const nextPos = getNextPosition(matchId)
       setPlayerPositions(prev =>
         prev.map(p =>
-          p.slot === winnerSlot ? { ...p, x: nextPos.x, y: nextPos.y } : p
+          p.slot === winnerSlot ? { ...p, x: leftTopX, y: leftTopY } : p
         )
       )
     } else {
       // 勝者のスロットを次の位置に移動
-      const nextPos = getNextPosition(matchId)
       setPlayerPositions(prev =>
         prev.map(p =>
-          p.slot === winnerSlot ? { ...p, x: nextPos.x, y: nextPos.y } : p
+          p.slot === winnerSlot ? { ...p, x: leftTopX, y: leftTopY } : p
         )
       )
     }

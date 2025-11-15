@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { DEBUG_SHOW_CENTER_MARKERS } from '../tournamentConfig'
 
 function PlayerSlot({
   name,
@@ -80,10 +81,28 @@ function PlayerSlot({
             height: '100%',
             objectFit: 'contain',
             display: 'block',
-            opacity: isLoser ? 0.5 : 1,
-            filter: isLoser ? 'grayscale(100%)' : 'none'
+            opacity: 1,
+            filter: isLoser ? 'grayscale(100%) brightness(1.3) contrast(0.8)' : 'none'
           }}
         />
+        {/* デバッグ用: 中心点マーカー */}
+        {DEBUG_SHOW_CENTER_MARKERS && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '10px',
+              height: '10px',
+              backgroundColor: '#00ff00',
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              zIndex: 100,
+              border: '2px solid #000'
+            }}
+          />
+        )}
       </motion.div>
     )
   }
