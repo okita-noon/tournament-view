@@ -1,6 +1,6 @@
 // Debug settings
-export const DEBUG_SHOW_CENTER_MARKERS = true // 中心点マーカーを表示
-export const DEBUG_COORDINATE_PICKER = true // クリックで座標を取得
+export const DEBUG_SHOW_CENTER_MARKERS = false // 中心点マーカーを表示
+export const DEBUG_COORDINATE_PICKER = false // クリックで座標を取得
 
 // Background image dimensions (display size when coordinates were measured)
 export const IMAGE_WIDTH = 3840
@@ -120,6 +120,9 @@ export const FINAL_PLAYER_POSITIONS = [
   { x: 50, y: 30.5, index: 0 }, // Final player 0
   { x: 50, y: 52.5, index: 1 }, // Final player 1
 ]
+
+// Champion position (優勝者の位置) (in percentage)
+export const CHAMPION_POSITION = { x: 68, y: 41 }
 
 // Winner paths - coordinates for animated lines when players advance (in percentage)
 export const MATCH_PATHS = {

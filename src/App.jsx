@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
-import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, SLOT_WIDTH, SLOT_HEIGHT } from './tournamentConfig'
+import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, CHAMPION_POSITION, SLOT_WIDTH, SLOT_HEIGHT } from './tournamentConfig'
 import './App.css'
 
 function App() {
@@ -96,7 +96,7 @@ function App() {
       'sf3': SF_WINNER_POSITIONS[3],
       'semi0': FINAL_PLAYER_POSITIONS[0],
       'semi1': FINAL_PLAYER_POSITIONS[1],
-      'final': { x: 22.135, y: 19.444 } // Champion position (center) (in percentage)
+      'final': CHAMPION_POSITION
     }
     return positionMap[matchId]
   }
@@ -158,11 +158,9 @@ function App() {
         advanceToBracket={advanceToBracket}
       />
 
-      <div className="controls">
-        <button className="reset-btn" onClick={reset}>
-          リセット
-        </button>
-      </div>
+      <button className="reset-btn" onClick={reset} title="リセット">
+        ↻
+      </button>
     </div>
   )
 }

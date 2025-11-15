@@ -329,66 +329,44 @@ function Tournament({
     return positionMap[matchId]
   }
 
-  // 試合IDと勝者スロットから経路キーを決定
-  const getPathKeyForMatch = (matchId, winnerSlot) => {
-    // Quarter Finals
-    if (matchId === 'qf0') return winnerSlot === 1 ? 'qf0_slot1' : 'qf0_slot2'
-    if (matchId === 'qf1') return winnerSlot === 3 ? 'qf1_slot3' : 'qf1_slot4'
-    if (matchId === 'qf2') return winnerSlot === 7 ? 'qf2_slot7' : 'qf2_slot8'
-    if (matchId === 'qf3') return winnerSlot === 9 ? 'qf3_slot9' : 'qf3_slot10'
-
-    // Semi Finals
-    if (matchId === 'sf0')
-      return winnerSlot === 0 ? 'sf0_slot0' : 'sf0_qfWinner0'
-    if (matchId === 'sf1')
-      return winnerSlot === 5 ? 'sf1_slot5' : 'sf1_qfWinner1'
-    if (matchId === 'sf2')
-      return winnerSlot === 6 ? 'sf2_slot6' : 'sf2_qfWinner2'
-    if (matchId === 'sf3')
-      return winnerSlot === 11 ? 'sf3_slot11' : 'sf3_qfWinner3'
-
-    // Semi-semi finals (準決勝)
-    if (matchId === 'semi0') {
-      // winnerSlotの現在位置がSF Winner 0か1かを判定
-      const pos = playerPositions.find((p) => p.slot === winnerSlot)
-      if (!pos) return null
-
-      // SF Winner 0 or 1の位置にいるか判定
-      const isSfWinner0 =
-        Math.abs(pos.x - SF_WINNER_POSITIONS[0].x) < 1 &&
-        Math.abs(pos.y - SF_WINNER_POSITIONS[0].y) < 1
-      return isSfWinner0 ? 'semi0_sfWinner0' : 'semi0_sfWinner1'
-    }
-    if (matchId === 'semi1') {
-      const pos = playerPositions.find((p) => p.slot === winnerSlot)
-      if (!pos) return null
-
-      const isSfWinner2 =
-        Math.abs(pos.x - SF_WINNER_POSITIONS[2].x) < 1 &&
-        Math.abs(pos.y - SF_WINNER_POSITIONS[2].y) < 1
-      return isSfWinner2 ? 'semi1_sfWinner2' : 'semi1_sfWinner3'
-    }
-
-    // Finals
-    if (matchId === 'final') {
-      const pos = playerPositions.find((p) => p.slot === winnerSlot)
-      if (!pos) return null
-
-      const isFinalPlayer0 =
-        Math.abs(pos.x - FINAL_PLAYER_POSITIONS[0].x) < 1 &&
-        Math.abs(pos.y - FINAL_PLAYER_POSITIONS[0].y) < 1
-      return isFinalPlayer0 ? 'final_player0' : 'final_player1'
-    }
-
-    return null
-  }
-
   // 全ての勝者経路を取得
   const getAllWinnerPaths = () => {
     const paths = []
 
     Object.entries(matchResults).forEach(([matchId, result]) => {
-      const pathKey = getPathKeyForMatch(matchId, result.winner)
+      let pathKey = null
+
+      // Quarter Finals
+      if (matchId === 'qf0') pathKey = result.winner === 1 ? 'qf0_slot1' : 'qf0_slot2'
+      else if (matchId === 'qf1') pathKey = result.winner === 3 ? 'qf1_slot3' : 'qf1_slot4'
+      else if (matchId === 'qf2') pathKey = result.winner === 7 ? 'qf2_slot7' : 'qf2_slot8'
+      else if (matchId === 'qf3') pathKey = result.winner === 9 ? 'qf3_slot9' : 'qf3_slot10'
+
+      // Semi Finals
+      else if (matchId === 'sf0') pathKey = result.winner === 0 ? 'sf0_slot0' : 'sf0_qfWinner0'
+      else if (matchId === 'sf1') pathKey = result.winner === 5 ? 'sf1_slot5' : 'sf1_qfWinner1'
+      else if (matchId === 'sf2') pathKey = result.winner === 6 ? 'sf2_slot6' : 'sf2_qfWinner2'
+      else if (matchId === 'sf3') pathKey = result.winner === 11 ? 'sf3_slot11' : 'sf3_qfWinner3'
+
+      // Semi-semi finals (準決勝)
+      else if (matchId === 'semi0') {
+        // semi0 = SF0勝者 vs SF1勝者
+        const isSfWinner0 = matchResults['sf0']?.winner === result.winner
+        pathKey = isSfWinner0 ? 'semi0_sfWinner0' : 'semi0_sfWinner1'
+      }
+      else if (matchId === 'semi1') {
+        // semi1 = SF2勝者 vs SF3勝者
+        const isSfWinner2 = matchResults['sf2']?.winner === result.winner
+        pathKey = isSfWinner2 ? 'semi1_sfWinner2' : 'semi1_sfWinner3'
+      }
+
+      // Finals
+      else if (matchId === 'final') {
+        // final = semi0勝者 vs semi1勝者
+        const isSemi0Winner = matchResults['semi0']?.winner === result.winner
+        pathKey = isSemi0Winner ? 'final_player0' : 'final_player1'
+      }
+
       if (pathKey && MATCH_PATHS[pathKey]) {
         paths.push({
           key: `${matchId}-${result.winner}`,
@@ -527,23 +505,18 @@ function Tournament({
           })}
         </svg>
 
-        {/* Render all 12 slots with animated positions */}
-        {playerPositions.map((pos) => {
+        {/* Render initial positions (always visible) */}
+        {SLOT_POSITIONS.map((initialPos) => {
           return (
-            <motion.div
-              key={pos.slot}
-              animate={{
-                left: `${pos.x}%`,
-                top: `${pos.y}%`,
-              }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
+            <div
+              key={`initial-${initialPos.slot}`}
               style={{
                 position: 'absolute',
+                left: `${initialPos.x}%`,
+                top: `${initialPos.y}%`,
                 width: `${SLOT_WIDTH}%`,
                 height: `${SLOT_HEIGHT}%`,
                 zIndex: 2,
-                // border: '2px solid #00ff00',
-                // boxSizing: 'border-box'
               }}
             >
               <div
@@ -555,24 +528,24 @@ function Tournament({
                 }}
               >
                 <PlayerSlot
-                  name={players[pos.slot]}
-                  placeholder={`出場者 ${pos.slot + 1}`}
+                  name={players[initialPos.slot]}
+                  placeholder={`出場者 ${initialPos.slot + 1}`}
                   isInput={false}
-                  isLoser={isLoser(pos.slot)}
+                  isLoser={isLoser(initialPos.slot)}
                   onSelect={() => {}}
                   disabled={true}
                   buttonText='勝'
                   animateEntry={false}
-                  slotImage={PLAYER_SLOT_IMAGES[pos.slot]}
+                  slotImage={PLAYER_SLOT_IMAGES[initialPos.slot]}
                 />
                 {/* クリック可能な領域 (中央50%) */}
                 <div
                   onClick={() => {
-                    if (!canAdvanceToBracket(pos.slot) || isLoser(pos.slot))
+                    if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
                       return
-                    const { matchId } = getMatchInfo(pos.slot)
-                    const loserSlot = getOpponent(pos.slot)
-                    advanceToBracket(matchId, pos.slot, loserSlot)
+                    const { matchId } = getMatchInfo(initialPos.slot)
+                    const loserSlot = getOpponent(initialPos.slot)
+                    advanceToBracket(matchId, initialPos.slot, loserSlot)
                   }}
                   style={{
                     position: 'absolute',
@@ -581,10 +554,79 @@ function Tournament({
                     width: '50%',
                     height: '100%',
                     pointerEvents: 'auto',
-                    // border: '2px solid #ff0000',
-                    // boxSizing: 'border-box',
                     cursor:
-                      !canAdvanceToBracket(pos.slot) || isLoser(pos.slot)
+                      !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
+                        ? 'default'
+                        : 'pointer',
+                  }}
+                />
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Render moved positions (animated) - 各スロットごとに常に存在 */}
+        {SLOT_POSITIONS.map((initialPos) => {
+          const pos = playerPositions.find(p => p.slot === initialPos.slot)
+          if (!pos) return null
+
+          // 初期位置と同じ場合は非表示
+          const isAtInitialPosition = Math.abs(initialPos.x - pos.x) < 0.1 && Math.abs(initialPos.y - pos.y) < 0.1
+
+          return (
+            <motion.div
+              key={`moved-${initialPos.slot}`}
+              animate={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                opacity: isAtInitialPosition ? 0 : 1,
+              }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute',
+                width: `${SLOT_WIDTH}%`,
+                height: `${SLOT_HEIGHT}%`,
+                zIndex: 2,
+                pointerEvents: isAtInitialPosition ? 'none' : 'auto',
+              }}
+            >
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'none',
+                }}
+              >
+                <PlayerSlot
+                  name={players[initialPos.slot]}
+                  placeholder={`出場者 ${initialPos.slot + 1}`}
+                  isInput={false}
+                  isLoser={isLoser(initialPos.slot)}
+                  onSelect={() => {}}
+                  disabled={true}
+                  buttonText='勝'
+                  animateEntry={false}
+                  slotImage={PLAYER_SLOT_IMAGES[initialPos.slot]}
+                />
+                {/* クリック可能な領域 (中央50%) */}
+                <div
+                  onClick={() => {
+                    if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
+                      return
+                    const { matchId } = getMatchInfo(initialPos.slot)
+                    const loserSlot = getOpponent(initialPos.slot)
+                    advanceToBracket(matchId, initialPos.slot, loserSlot)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: '25%',
+                    top: '0',
+                    width: '50%',
+                    height: '100%',
+                    pointerEvents: 'auto',
+                    cursor:
+                      !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
                         ? 'default'
                         : 'pointer',
                   }}
