@@ -11,8 +11,8 @@ function App() {
 
   // 各スロットの現在位置を管理
   const [playerPositions, setPlayerPositions] = useState(() => {
-    // const saved = localStorage.getItem('playerPositions')
-    // if (saved) return JSON.parse(saved)
+    const saved = localStorage.getItem('playerPositions')
+    if (saved) return JSON.parse(saved)
     return SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y }))
   })
 
@@ -60,9 +60,9 @@ function App() {
     localStorage.setItem('tournamentPlayers', JSON.stringify(players))
   }, [players])
 
-  // useEffect(() => {
-  //   localStorage.setItem('playerPositions', JSON.stringify(playerPositions))
-  // }, [playerPositions])
+  useEffect(() => {
+    localStorage.setItem('playerPositions', JSON.stringify(playerPositions))
+  }, [playerPositions])
 
   useEffect(() => {
     if (champion) {
@@ -137,16 +137,14 @@ function App() {
   }
 
   const reset = () => {
-    if (confirm('トーナメントをリセットしますか？')) {
-      setPlayers(DEFAULT_PLAYERS)
-      setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
-      setChampion(null)
-      setMatchResults({})
-      localStorage.removeItem('tournamentPlayers')
-      localStorage.removeItem('playerPositions')
-      localStorage.removeItem('champion')
-      localStorage.removeItem('matchResults')
-    }
+    setPlayers(DEFAULT_PLAYERS)
+    setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
+    setChampion(null)
+    setMatchResults({})
+    localStorage.removeItem('tournamentPlayers')
+    localStorage.removeItem('playerPositions')
+    localStorage.removeItem('champion')
+    localStorage.removeItem('matchResults')
   }
 
   return (

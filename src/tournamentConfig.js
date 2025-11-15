@@ -12,12 +12,12 @@ export const SLOT_WIDTH = 28.5 // この値を変更すると高さも自動調�
 export const SLOT_HEIGHT = SLOT_WIDTH / 4.1 // 自動計算
 
 // Slot spacing (スロット間の間隔を含めた幅)
-const SLOT_SPACING = SLOT_WIDTH * 0.563 // 1.0 = ギャップなし, 1.1 = 10%のギャップ, など
+const SLOT_SPACING = SLOT_WIDTH * 0.552 // 1.0 = ギャップなし, 1.1 = 10%のギャップ, など
 
 // Base positions for top and bottom rows (左端の位置のみ変更)
-const TOP_ROW_START_X = -3.2
+const TOP_ROW_START_X = -3.75
 const TOP_ROW_Y = 5.45
-const BOTTOM_ROW_START_X = -3.2
+const BOTTOM_ROW_START_X = -3.75
 const BOTTOM_ROW_Y = 72.2
 
 // Tournament bracket positions based on background image (in percentage)
@@ -101,10 +101,10 @@ export const MATCHES = {
 
 // QF Winners display positions (between Round 1 and seeded players) (in percentage)
 export const QF_WINNER_POSITIONS = [
-  { x: 34, y: 21, index: 0 }, // QF0 winner
-  { x: 65, y: 21, index: 1 }, // QF1 winner
-  { x: 34, y: 63, index: 2 }, // QF2 winner
-  { x: 65, y: 63, index: 3 }, // QF3 winner
+  { x: 34, y: 21.5, index: 0 }, // QF0 winner
+  { x: 65, y: 21.5, index: 1 }, // QF1 winner
+  { x: 34, y: 62.8, index: 2 }, // QF2 winner
+  { x: 65, y: 62.8, index: 3 }, // QF3 winner
 ]
 
 // SF Winners display positions (after Round 2) (in percentage)
@@ -117,7 +117,7 @@ export const SF_WINNER_POSITIONS = [
 
 // Final Players display positions (決勝戦) (in percentage)
 export const FINAL_PLAYER_POSITIONS = [
-  { x: 50, y: 31.5, index: 0 }, // Final player 0
+  { x: 50, y: 30.5, index: 0 }, // Final player 0
   { x: 50, y: 52.5, index: 1 }, // Final player 1
 ]
 
@@ -128,115 +128,131 @@ export const MATCH_PATHS = {
     { x: 26.07, y: 12.32 },
     { x: 26.07, y: 16.85 },
     { x: 34.19, y: 16.85 },
+    { x: 34.19, y: 17.3 },
   ],
   qf0_slot2: [
     { x: 41.89, y: 12.43 },
     { x: 41.89, y: 16.75 },
-    { x: 34.25, y: 16.85 },
+    { x: 34.25, y: 16.75 },
+    { x: 34.25, y: 17.3 },
   ],
   qf1_slot3: [
     { x: 57.82, y: 12.22 },
     { x: 57.82, y: 16.85 },
     { x: 65.53, y: 16.85 },
+    { x: 65.53, y: 17.3 },
   ],
   qf1_slot4: [
-    { x: 73.76, y: 12.22 },
+    { x: 73.7, y: 12.22 },
     { x: 73.7, y: 16.75 },
-    { x: 65.53, y: 16.85 },
+    { x: 65.53, y: 16.75 },
+    { x: 65.53, y: 17.3 },
   ],
   qf2_slot7: [
     { x: 26.02, y: 72.08 },
-    { x: 26.07, y: 67.45 },
-    { x: 34.19, y: 67.34 },
+    { x: 26.02, y: 67.45 },
+    { x: 34.19, y: 67.45 },
+    { x: 34.19, y: 66.9 },
   ],
   qf2_slot8: [
     { x: 41.89, y: 72.05 },
-    { x: 41.83, y: 67.52 },
+    { x: 41.89, y: 67.31 },
     { x: 34.19, y: 67.31 },
+    { x: 34.19, y: 66.9 },
   ],
   qf3_slot9: [
     { x: 57.82, y: 72.27 },
-    { x: 57.94, y: 67.32 },
+    { x: 57.82, y: 67.32 },
     { x: 65.53, y: 67.32 },
+    { x: 65.53, y: 66.9 },
   ],
   qf3_slot10: [
     { x: 73.7, y: 71.98 },
     { x: 73.7, y: 67.46 },
-    { x: 65.64, y: 67.56 },
+    { x: 65.64, y: 67.46 },
+    { x: 65.64, y: 66.9 },
   ],
 
   // Semi Finals
   sf0_slot0: [
     { x: 10.38, y: 12.32 },
-    { x: 10.44, y: 23.17 },
-    { x: 22.52, y: 23.27 },
+    { x: 10.38, y: 23.17 },
+    { x: 22.52, y: 23.17 },
+    { x: 22.52, y: 24.3 },
   ],
   sf0_qfWinner0: [
     { x: 34.25, y: 16.85 },
-    { x: 34.13, y: 23.27 },
+    { x: 34.25, y: 23.27 },
     { x: 22.52, y: 23.27 },
-  ],
-  sf1_slot5: [
-    { x: 65.64, y: 16.85 },
-    { x: 65.53, y: 23.27 },
-    { x: 77.31, y: 23.27 },
+    { x: 22.52, y: 24.3 },
   ],
   sf1_qfWinner1: [
+    { x: 65.64, y: 16.85 },
+    { x: 65.64, y: 23.27 },
+    { x: 77.31, y: 23.27 },
+    { x: 77.31, y: 24.3 },
+  ],
+  sf1_slot5: [
     { x: 89.34, y: 12.53 },
-    { x: 89.28, y: 23.27 },
-    { x: 77.31, y: 23.49 },
+    { x: 89.34, y: 23.27 },
+    { x: 77.31, y: 23.427 },
+    { x: 77.31, y: 24.3 },
   ],
   sf2_slot6: [
-    { x: 10.55, y: 72.06 },
+    { x: 10.5, y: 72.06 },
     { x: 10.5, y: 60.9 },
     { x: 22.52, y: 60.9 },
+    { x: 22.52, y: 59.9 },
   ],
   sf2_qfWinner2: [
     { x: 34.19, y: 67.34 },
-    { x: 34.13, y: 61.02 },
-    { x: 22.46, y: 60.92 },
-  ],
-  sf3_slot11: [
-    { x: 65.64, y: 67.37 },
-    { x: 65.53, y: 61.05 },
-    { x: 77.25, y: 60.95 },
+    { x: 34.19, y: 61.02 },
+    { x: 22.46, y: 61.02 },
+    { x: 22.46, y: 59.9 },
   ],
   sf3_qfWinner3: [
+    { x: 65.64, y: 67.37 },
+    { x: 65.64, y: 61.05 },
+    { x: 77.25, y: 61.05 },
+    { x: 77.25, y: 60.0 },
+  ],
+  sf3_slot11: [
     { x: 89.28, y: 72.03 },
     { x: 89.28, y: 60.97 },
-    { x: 77.49, y: 60.87 },
+    { x: 77.49, y: 60.97 },
+    { x: 77.49, y: 60 },
   ],
 
   // 準決勝 (Semi-semi finals)
   semi0_sfWinner0: [
     { x: 22.58, y: 23.32 },
     { x: 22.58, y: 29.43 },
-    { x: 49.95, y: 29.33 },
+    { x: 49.95, y: 29.43 },
   ],
   semi0_sfWinner1: [
     { x: 77.19, y: 23.38 },
-    { x: 77.37, y: 29.38 },
+    { x: 77.17, y: 29.38 },
     { x: 49.89, y: 29.38 },
   ],
   semi1_sfWinner2: [
     { x: 22.46, y: 60.9 },
-    { x: 22.58, y: 54.68 },
-    { x: 50.01, y: 54.58 },
+    { x: 22.46, y: 54.68 },
+    { x: 50.01, y: 54.68 },
   ],
   semi1_sfWinner3: [
     { x: 77.43, y: 60.99 },
     { x: 77.43, y: 54.89 },
-    { x: 49.89, y: 54.78 },
+    { x: 49.89, y: 54.89 },
   ],
 
   // 決勝 (Finals)
   final_player0: [
     { x: 49.83, y: 29.39 },
-    { x: 49.95, y: 33.08 },
+    { x: 49.83, y: 33.08 },
   ],
   final_player1: [
     { x: 49.95, y: 54.65 },
-    { x: 50.06, y: 50.96 },
+    { x: 49.95, y: 50.96 },
   ],
 }
 
