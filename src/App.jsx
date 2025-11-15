@@ -26,6 +26,9 @@ function App() {
     return saved ? JSON.parse(saved) : {}
   })
 
+  // 履歴管理（最大50ステップ）
+  const [history, setHistory] = useState([])
+
   // 開発用: tournamentConfig.jsの変更を自動検知してリセット
   useEffect(() => {
     if (import.meta.hot) {
@@ -102,6 +105,18 @@ function App() {
   }
 
   const advanceToBracket = (matchId, winnerSlot, loserSlot = null) => {
+    // 現在の状態を履歴に保存
+    setHistory(prev => {
+      const newHistory = [...prev, {
+        players: [...players],
+        playerPositions: playerPositions.map(p => ({ ...p })),
+        champion,
+        matchResults: { ...matchResults }
+      }]
+      // 最大50ステップまで保持
+      return newHistory.slice(-50)
+    })
+
     // 試合結果を記録
     if (loserSlot !== null) {
       setMatchResults(prev => ({
@@ -136,11 +151,25 @@ function App() {
     }
   }
 
+  const undo = () => {
+    if (history.length === 0) return
+
+    const previousState = history[history.length - 1]
+    setPlayers(previousState.players)
+    setPlayerPositions(previousState.playerPositions)
+    setChampion(previousState.champion)
+    setMatchResults(previousState.matchResults)
+
+    // 履歴から最後のエントリを削除
+    setHistory(prev => prev.slice(0, -1))
+  }
+
   const reset = () => {
     setPlayers(DEFAULT_PLAYERS)
     setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
     setChampion(null)
     setMatchResults({})
+    setHistory([])
     localStorage.removeItem('tournamentPlayers')
     localStorage.removeItem('playerPositions')
     localStorage.removeItem('champion')
@@ -158,6 +187,14 @@ function App() {
         advanceToBracket={advanceToBracket}
       />
 
+      <button
+        className="undo-btn"
+        onClick={undo}
+        title="元に戻す"
+        disabled={history.length === 0}
+      >
+        ←
+      </button>
       <button className="reset-btn" onClick={reset} title="リセット">
         ↻
       </button>
