@@ -220,6 +220,10 @@ function App() {
   }
 
   const reset = () => {
+    if (!window.confirm('全ての選手設定と対戦結果をリセットしますか？\n（表示設定は保持されます）')) {
+      return
+    }
+
     setPlayers(DEFAULT_PLAYERS)
     setPlayerPositions(SLOT_POSITIONS.map(p => ({ slot: p.slot, x: p.x, y: p.y })))
     setChampion(null)
