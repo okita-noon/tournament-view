@@ -580,6 +580,11 @@ function Tournament({
           return (
             <motion.div
               key={`moved-${initialPos.slot}`}
+              initial={{
+                left: `${initialPos.x}%`,
+                top: `${initialPos.y}%`,
+                opacity: 0,
+              }}
               animate={{
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
