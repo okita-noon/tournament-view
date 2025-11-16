@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
-import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, CHAMPION_POSITION, SLOT_WIDTH, SLOT_HEIGHT } from './tournamentConfig'
+import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, CHAMPION_POSITION, SLOT_WIDTH, SLOT_HEIGHT, AVAILABLE_PLAYERS } from './tournamentConfig'
 import './App.css'
 
 function App() {
@@ -262,6 +262,13 @@ function App() {
     localStorage.removeItem('viewOffsetY')
   }
 
+  const randomizePlayers = () => {
+    // Fisher-Yatesシャッフルでランダムに12人選択
+    const shuffled = [...AVAILABLE_PLAYERS].sort(() => Math.random() - 0.5)
+    const randomPlayers = shuffled.slice(0, 12)
+    setPlayers(randomPlayers)
+  }
+
   return (
     <div className="app">
       <Tournament
@@ -321,6 +328,15 @@ function App() {
             disabled={scale <= 0.5}
           >
             −
+          </button>
+
+          {/* ランダム設定ボタン */}
+          <button
+            className="random-players-btn"
+            onClick={randomizePlayers}
+            title="ランダムに設定"
+          >
+            🎲
           </button>
         </>
       )}
