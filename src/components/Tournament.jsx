@@ -467,6 +467,10 @@ function Tournament({
           paddingTop: `${(IMAGE_HEIGHT / IMAGE_WIDTH) * 100}%`,
           position: 'relative',
           cursor: DEBUG_COORDINATE_PICKER ? 'crosshair' : 'default',
+          backgroundImage: `url(${import.meta.env.BASE_URL}Tournament_4K.png)`,
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: '100% 100%',
         }}
       >
         {/* SVG layer for winner paths */}

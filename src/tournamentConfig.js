@@ -278,18 +278,21 @@ export const DEFAULT_PLAYERS = [
 // Trophy image path (set to null to use default emoji 🏆)
 export const TROPHY_IMAGE = null // Example: '/trophy.png'
 
+// Base URL for images (automatically set by Vite)
+const BASE_URL = import.meta.env.BASE_URL
+
 // Player slot images (set to null to use default HTML/CSS rendering)
 export const PLAYER_SLOT_IMAGES = {
-  0: '/iroziro.png',
-  1: '/Malimo.png',
-  2: '/HAL.png',
-  3: '/ALP.png',
-  4: '/Airi.png',
-  5: '/Beige.png',
-  6: '/Goat.png',
-  7: '/Katts.png',
-  8: '/Menowa.png',
-  9: '/Meves.png',
-  10: '/Rai.png',
-  11: '/mawashizuki.png',
+  0: `${BASE_URL}iroziro.png`,
+  1: `${BASE_URL}Malimo.png`,
+  2: `${BASE_URL}HAL.png`,
+  3: `${BASE_URL}ALP.png`,
+  4: `${BASE_URL}Airi.png`,
+  5: `${BASE_URL}Beige.png`,
+  6: `${BASE_URL}Goat.png`,
+  7: `${BASE_URL}Katts.png`,
+  8: `${BASE_URL}Menowa.png`,
+  9: `${BASE_URL}Meves.png`,
+  10: `${BASE_URL}Rai.png`,
+  11: `${BASE_URL}mawashizuki.png`,
 }
