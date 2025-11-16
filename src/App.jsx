@@ -294,7 +294,6 @@ function App() {
       <button
         className="toggle-controls-btn"
         onClick={() => setShowControls(!showControls)}
-        title={showControls ? "コントロールを隠す" : "コントロールを表示"}
       >
         {showControls ? "×" : "⚙"}
       </button>
@@ -302,19 +301,19 @@ function App() {
       {showControls && (
         <>
           {/* 移動ボタン（左側） */}
-          <button className="move-up-btn" onClick={moveUp} title="上に移動">
+          <button className="move-up-btn" onClick={moveUp} data-tooltip="上に移動">
             ↑
           </button>
-          <button className="move-down-btn" onClick={moveDown} title="下に移動">
+          <button className="move-down-btn" onClick={moveDown} data-tooltip="下に移動">
             ↓
           </button>
-          <button className="move-left-btn" onClick={moveLeft} title="左に移動">
+          <button className="move-left-btn tooltip-right" onClick={moveLeft} data-tooltip="左に移動">
             ←
           </button>
-          <button className="move-right-btn" onClick={moveRight} title="右に移動">
+          <button className="move-right-btn" onClick={moveRight} data-tooltip="右に移動">
             →
           </button>
-          <button className="reset-view-btn" onClick={resetView} title="中央に戻す">
+          <button className="reset-view-btn" onClick={resetView} data-tooltip="中央に戻す">
             ●
           </button>
 
@@ -322,15 +321,15 @@ function App() {
           <button
             className="zoom-in-btn"
             onClick={zoomIn}
-            title="拡大"
+            data-tooltip="拡大"
             disabled={scale >= 2.0}
           >
             +
           </button>
           <button
-            className="zoom-out-btn"
+            className="zoom-out-btn tooltip-right"
             onClick={zoomOut}
-            title="縮小"
+            data-tooltip="縮小"
             disabled={scale <= 0.5}
           >
             −
@@ -338,9 +337,9 @@ function App() {
 
           {/* ランダム設定ボタン */}
           <button
-            className="random-players-btn"
+            className="random-players-btn tooltip-right"
             onClick={randomizePlayers}
-            title="ランダムに設定"
+            data-tooltip="ランダムに設定"
           >
             🎲
           </button>
@@ -349,7 +348,7 @@ function App() {
           <button
             className="help-btn"
             onClick={() => setShowHelp(true)}
-            title="使い方"
+            data-tooltip="使い方"
           >
             ?
           </button>
@@ -361,13 +360,13 @@ function App() {
         <button
           className="undo-btn"
           onClick={undo}
-          title="元に戻す"
+          data-tooltip="元に戻す"
           disabled={history.length === 0}
         >
           ⟲
         </button>
       )}
-      <button className="reset-btn" onClick={reset} title="リセット">
+      <button className="reset-btn" onClick={reset}>
         ↻
       </button>
     </div>

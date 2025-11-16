@@ -26,6 +26,40 @@
   letter-spacing: 4px;
 }
 
+/* カスタムTooltip */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: rgba(255, 215, 0, 0.9);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  border: 1px solid rgba(139, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* 左端のボタン用（右寄せtooltip） */
+[data-tooltip].tooltip-right::after {
+  left: 0;
+  transform: translateX(0);
+}
+
 /* トグルボタン */
 .toggle-controls-btn {
   position: fixed;
