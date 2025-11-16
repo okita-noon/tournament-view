@@ -29,12 +29,27 @@ function App() {
   // 履歴管理（最大50ステップ）
   const [history, setHistory] = useState([])
 
+  // モード管理（入力モード vs 対戦モード）
+  const [isBattleMode, setIsBattleMode] = useState(() => {
+    const saved = localStorage.getItem('isBattleMode')
+    return saved ? JSON.parse(saved) : false
+  })
+
   // 縮尺管理
-  const [scale, setScale] = useState(1.0)
+  const [scale, setScale] = useState(() => {
+    const saved = localStorage.getItem('viewScale')
+    return saved ? parseFloat(saved) : 1.0
+  })
 
   // 位置オフセット管理（%単位）
-  const [offsetY, setOffsetY] = useState(0)
-  const [offsetX, setOffsetX] = useState(0)
+  const [offsetY, setOffsetY] = useState(() => {
+    const saved = localStorage.getItem('viewOffsetY')
+    return saved ? parseFloat(saved) : 0
+  })
+  const [offsetX, setOffsetX] = useState(() => {
+    const saved = localStorage.getItem('viewOffsetX')
+    return saved ? parseFloat(saved) : 0
+  })
 
   // コントロール表示トグル
   const [showControls, setShowControls] = useState(false)
@@ -88,6 +103,32 @@ function App() {
   useEffect(() => {
     localStorage.setItem('matchResults', JSON.stringify(matchResults))
   }, [matchResults])
+
+  useEffect(() => {
+    localStorage.setItem('viewScale', scale.toString())
+  }, [scale])
+
+  useEffect(() => {
+    localStorage.setItem('viewOffsetX', offsetX.toString())
+  }, [offsetX])
+
+  useEffect(() => {
+    localStorage.setItem('viewOffsetY', offsetY.toString())
+  }, [offsetY])
+
+  useEffect(() => {
+    localStorage.setItem('isBattleMode', JSON.stringify(isBattleMode))
+  }, [isBattleMode])
+
+  // 全員セットされたら自動的に対戦モードへ移行
+  useEffect(() => {
+    if (!isBattleMode) {
+      const allFilled = players.every(p => p.trim() !== '')
+      if (allFilled) {
+        setIsBattleMode(true)
+      }
+    }
+  }, [players, isBattleMode])
 
   const updatePlayer = (slotIndex, name) => {
     setPlayers(prev => {
@@ -180,10 +221,12 @@ function App() {
     setChampion(null)
     setMatchResults({})
     setHistory([])
+    setIsBattleMode(false)
     localStorage.removeItem('tournamentPlayers')
     localStorage.removeItem('playerPositions')
     localStorage.removeItem('champion')
     localStorage.removeItem('matchResults')
+    localStorage.removeItem('isBattleMode')
   }
 
   const zoomIn = () => {
@@ -214,6 +257,9 @@ function App() {
     setOffsetX(0)
     setOffsetY(0)
     setScale(1.0)
+    localStorage.removeItem('viewScale')
+    localStorage.removeItem('viewOffsetX')
+    localStorage.removeItem('viewOffsetY')
   }
 
   return (
@@ -225,6 +271,7 @@ function App() {
         matchResults={matchResults}
         updatePlayer={updatePlayer}
         advanceToBracket={advanceToBracket}
+        isBattleMode={isBattleMode}
         scale={scale}
         offsetX={offsetX}
         offsetY={offsetY}
@@ -279,14 +326,16 @@ function App() {
       )}
 
       {/* その他のボタン（右下） */}
-      <button
-        className="undo-btn"
-        onClick={undo}
-        title="元に戻す"
-        disabled={history.length === 0}
-      >
-        ⟲
-      </button>
+      {isBattleMode && (
+        <button
+          className="undo-btn"
+          onClick={undo}
+          title="元に戻す"
+          disabled={history.length === 0}
+        >
+          ⟲
+        </button>
+      )}
       <button className="reset-btn" onClick={reset} title="リセット">
         ↻
       </button>

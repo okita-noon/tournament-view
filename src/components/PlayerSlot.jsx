@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { DEBUG_SHOW_CENTER_MARKERS } from '../tournamentConfig'
+import { DEBUG_SHOW_CENTER_MARKERS, AVAILABLE_PLAYERS } from '../tournamentConfig'
 
 function PlayerSlot({
   name,
@@ -12,7 +12,9 @@ function PlayerSlot({
   disabled,
   buttonText = '勝',
   animateEntry,
-  slotImage = null
+  slotImage = null,
+  allPlayers = [],
+  currentSlot = -1
 }) {
   const [shouldAnimate, setShouldAnimate] = useState(false)
 
@@ -55,7 +57,99 @@ function PlayerSlot({
     }
   }
 
-  // 画像を使う場合
+  // 入力モードで選手が選ばれていない場合はプルダウンを表示
+  if (isInput && !name) {
+    // すでに選ばれている選手を除外（自分のスロットは除く）
+    const selectedPlayers = allPlayers.filter((p, idx) => p && idx !== currentSlot)
+    const availableOptions = AVAILABLE_PLAYERS.filter(p => !selectedPlayers.includes(p))
+
+    return (
+      <div
+        className="player-input-container"
+        style={{
+          position: 'absolute',
+          left: '25%',
+          top: '0',
+          width: '50%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <select
+          value={name}
+          onChange={(e) => onNameChange && onNameChange(e.target.value)}
+          className="player-name-select"
+          style={{
+            width: '100%',
+            height: '100%',
+            fontSize: '1rem',
+            textAlign: 'center',
+            border: 'none',
+            borderRadius: '0',
+            background: 'transparent',
+            color: 'transparent',
+            padding: '0',
+            cursor: 'pointer',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            outline: 'none',
+          }}
+        >
+          <option value="" style={{ color: '#fff' }}></option>
+          {availableOptions.map((player) => (
+            <option key={player} value={player} style={{ color: '#fff', background: 'rgba(0, 0, 0, 0.9)' }}>
+              {player}
+            </option>
+          ))}
+        </select>
+      </div>
+    )
+  }
+
+  // 入力モードで選手が選ばれている場合は画像を表示（クリックで選択解除）
+  if (isInput && name && slotImage) {
+    return (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}
+      >
+        <img
+          src={slotImage}
+          alt={name || placeholder}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+            opacity: 1,
+          }}
+        />
+        {/* 中央50%のクリック可能領域 */}
+        <div
+          className="player-image-slot-input"
+          onClick={() => onNameChange && onNameChange('')}
+          style={{
+            cursor: 'pointer',
+            position: 'absolute',
+            left: '25%',
+            top: '0',
+            width: '50%',
+            height: '100%',
+            zIndex: 10,
+          }}
+          title="クリックで選択解除"
+        />
+      </div>
+    )
+  }
+
+  // 画像を使う場合（対戦モード）
   if (slotImage) {
     return (
       <motion.div

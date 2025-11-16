@@ -259,20 +259,36 @@ export const MATCH_PATHS = {
   ],
 }
 
-// Default player names for initial setup
+// 選手リスト（プルダウンの選択肢）
+export const AVAILABLE_PLAYERS = [
+  'iroziro',
+  'Malimo',
+  'HAL',
+  'Menowa*',
+  'a_l_p',
+  'airi',
+  'Beige',
+  'Goat',
+  'kAtts',
+  'Meves',
+  'Rai',
+  'マワシスギ',
+]
+
+// Default player names for initial setup (空の配列 - 入力モードからスタート)
 export const DEFAULT_PLAYERS = [
-  'iroziro', // slot 0 - Seed
-  'Malimo', // slot 1
-  'HAL', // slot 2
-  'a_l_p', // slot 3
-  'airi', // slot 4
-  'Beige', // slot 5 - Seed
-  'Goat', // slot 6 - Seed
-  'kAtts', // slot 7
-  'Menowa*', // slot 8
-  'Meves', // slot 9
-  'Rai', // slot 10
-  'マワシスギ', // slot 11 - Seed
+  '', // slot 0 - Seed
+  '', // slot 1
+  '', // slot 2
+  '', // slot 3
+  '', // slot 4
+  '', // slot 5 - Seed
+  '', // slot 6 - Seed
+  '', // slot 7
+  '', // slot 8
+  '', // slot 9
+  '', // slot 10
+  '', // slot 11 - Seed
 ]
 
 // Trophy image path (set to null to use default emoji 🏆)
@@ -281,7 +297,23 @@ export const TROPHY_IMAGE = null // Example: '/trophy.png'
 // Base URL for images (automatically set by Vite)
 const BASE_URL = import.meta.env.BASE_URL
 
-// Player slot images (set to null to use default HTML/CSS rendering)
+// Player name to image mapping (選手名 → 画像パス)
+export const PLAYER_NAME_TO_IMAGE = {
+  'iroziro': `${BASE_URL}iroziro.png`,
+  'Malimo': `${BASE_URL}Malimo.png`,
+  'HAL': `${BASE_URL}HAL.png`,
+  'a_l_p': `${BASE_URL}ALP.png`,
+  'airi': `${BASE_URL}Airi.png`,
+  'Beige': `${BASE_URL}Beige.png`,
+  'Goat': `${BASE_URL}Goat.png`,
+  'kAtts': `${BASE_URL}Katts.png`,
+  'Menowa*': `${BASE_URL}Menowa.png`,
+  'Meves': `${BASE_URL}Meves.png`,
+  'Rai': `${BASE_URL}Rai.png`,
+  'マワシスギ': `${BASE_URL}mawashizuki.png`,
+}
+
+// Player slot images (set to null to use default HTML/CSS rendering) - 後方互換性のため保持
 export const PLAYER_SLOT_IMAGES = {
   0: `${BASE_URL}iroziro.png`,
   1: `${BASE_URL}Malimo.png`,

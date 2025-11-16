@@ -12,6 +12,7 @@ import {
   FINAL_PLAYER_POSITIONS,
   TROPHY_IMAGE,
   PLAYER_SLOT_IMAGES,
+  PLAYER_NAME_TO_IMAGE,
   MATCH_PATHS,
   DEBUG_COORDINATE_PICKER,
 } from '../tournamentConfig'
@@ -24,6 +25,7 @@ function Tournament({
   matchResults,
   updatePlayer,
   advanceToBracket,
+  isBattleMode = false,
   scale = 1.0,
   offsetX = 0,
   offsetY = 0,
@@ -479,41 +481,43 @@ function Tournament({
           transition: 'transform 0.3s ease',
         }}
       >
-        {/* SVG layer for winner paths */}
-        <svg
-          className='winner-paths-svg'
-          viewBox='0 0 100 56.25'
-          preserveAspectRatio='xMidYMid meet'
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        >
-          {getAllWinnerPaths().map(({ key, waypoints }) => {
-            const pathString = createPathString(waypoints)
-            if (!pathString) return null
+        {/* SVG layer for winner paths - 対戦モードのみ表示 */}
+        {isBattleMode && (
+          <svg
+            className='winner-paths-svg'
+            viewBox='0 0 100 56.25'
+            preserveAspectRatio='xMidYMid meet'
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 1,
+            }}
+          >
+            {getAllWinnerPaths().map(({ key, waypoints }) => {
+              const pathString = createPathString(waypoints)
+              if (!pathString) return null
 
-            return (
-              <motion.path
-                key={key}
-                d={pathString}
-                stroke='#ff0000'
-                strokeWidth='0.8'
-                fill='none'
-                strokeLinecap='round'
-                strokeLinejoin='miter'
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.2, ease: 'easeInOut' }}
-              />
-            )
-          })}
-        </svg>
+              return (
+                <motion.path
+                  key={key}
+                  d={pathString}
+                  stroke='#ff0000'
+                  strokeWidth='0.8'
+                  fill='none'
+                  strokeLinecap='round'
+                  strokeLinejoin='miter'
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 1.2, ease: 'easeInOut' }}
+                />
+              )
+            })}
+          </svg>
+        )}
 
         {/* Render initial positions (always visible) */}
         {SLOT_POSITIONS.map((initialPos) => {
@@ -534,49 +538,79 @@ function Tournament({
                   position: 'relative',
                   width: '100%',
                   height: '100%',
-                  pointerEvents: 'none',
                 }}
               >
+                {/* PlayerSlot（全体表示） */}
                 <PlayerSlot
                   name={players[initialPos.slot]}
                   placeholder={`出場者 ${initialPos.slot + 1}`}
-                  isInput={false}
-                  isLoser={isLoser(initialPos.slot)}
+                  isInput={!isBattleMode}
+                  isLoser={isBattleMode && isLoser(initialPos.slot)}
+                  onNameChange={(name) => updatePlayer(initialPos.slot, name)}
                   onSelect={() => {}}
                   disabled={true}
                   buttonText='勝'
                   animateEntry={false}
-                  slotImage={PLAYER_SLOT_IMAGES[initialPos.slot]}
+                  slotImage={players[initialPos.slot] ? PLAYER_NAME_TO_IMAGE[players[initialPos.slot]] : null}
+                  allPlayers={players}
+                  currentSlot={initialPos.slot}
                 />
-                {/* クリック可能な領域 (中央50%) */}
+                {/* 左25%のブロッカー（クリックを防止） */}
                 <div
-                  onClick={() => {
-                    if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
-                      return
-                    const { matchId } = getMatchInfo(initialPos.slot)
-                    const loserSlot = getOpponent(initialPos.slot)
-                    advanceToBracket(matchId, initialPos.slot, loserSlot)
-                  }}
                   style={{
                     position: 'absolute',
-                    left: '25%',
+                    left: '0',
                     top: '0',
-                    width: '50%',
+                    width: '25%',
                     height: '100%',
                     pointerEvents: 'auto',
-                    cursor:
-                      !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
-                        ? 'default'
-                        : 'pointer',
+                    zIndex: 100,
                   }}
                 />
+                {/* 右25%のブロッカー（クリックを防止） */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '75%',
+                    top: '0',
+                    width: '25%',
+                    height: '100%',
+                    pointerEvents: 'auto',
+                    zIndex: 100,
+                  }}
+                />
+                {/* 対戦モード時の中央50%クリックハンドラー */}
+                {isBattleMode && (
+                  <div
+                    onClick={() => {
+                      if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
+                        return
+                      const { matchId } = getMatchInfo(initialPos.slot)
+                      const loserSlot = getOpponent(initialPos.slot)
+                      advanceToBracket(matchId, initialPos.slot, loserSlot)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: '25%',
+                      top: '0',
+                      width: '50%',
+                      height: '100%',
+                      pointerEvents: 'auto',
+                      cursor:
+                        !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
+                          ? 'default'
+                          : 'pointer',
+                      zIndex: 10,
+                    }}
+                  />
+                )}
               </div>
             </div>
           )
         })}
 
-        {/* Render moved positions (animated) - 各スロットごとに常に存在 */}
-        {SLOT_POSITIONS.map((initialPos) => {
+        {/* Render moved positions (animated) - 対戦モードのみ表示 */}
+        {isBattleMode && SLOT_POSITIONS.map((initialPos) => {
           const pos = playerPositions.find(p => p.slot === initialPos.slot)
           if (!pos) return null
 
@@ -610,42 +644,72 @@ function Tournament({
                   position: 'relative',
                   width: '100%',
                   height: '100%',
-                  pointerEvents: 'none',
                 }}
               >
+                {/* PlayerSlot（全体表示） */}
                 <PlayerSlot
                   name={players[initialPos.slot]}
                   placeholder={`出場者 ${initialPos.slot + 1}`}
-                  isInput={false}
-                  isLoser={isLoser(initialPos.slot)}
+                  isInput={!isBattleMode}
+                  isLoser={isBattleMode && isLoser(initialPos.slot)}
+                  onNameChange={(name) => updatePlayer(initialPos.slot, name)}
                   onSelect={() => {}}
                   disabled={true}
                   buttonText='勝'
                   animateEntry={false}
-                  slotImage={PLAYER_SLOT_IMAGES[initialPos.slot]}
+                  slotImage={players[initialPos.slot] ? PLAYER_NAME_TO_IMAGE[players[initialPos.slot]] : null}
+                  allPlayers={players}
+                  currentSlot={initialPos.slot}
                 />
-                {/* クリック可能な領域 (中央50%) */}
+                {/* 左25%のブロッカー（クリックを防止） */}
                 <div
-                  onClick={() => {
-                    if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
-                      return
-                    const { matchId } = getMatchInfo(initialPos.slot)
-                    const loserSlot = getOpponent(initialPos.slot)
-                    advanceToBracket(matchId, initialPos.slot, loserSlot)
-                  }}
                   style={{
                     position: 'absolute',
-                    left: '25%',
+                    left: '0',
                     top: '0',
-                    width: '50%',
+                    width: '25%',
                     height: '100%',
                     pointerEvents: 'auto',
-                    cursor:
-                      !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
-                        ? 'default'
-                        : 'pointer',
+                    zIndex: 100,
                   }}
                 />
+                {/* 右25%のブロッカー（クリックを防止） */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '75%',
+                    top: '0',
+                    width: '25%',
+                    height: '100%',
+                    pointerEvents: 'auto',
+                    zIndex: 100,
+                  }}
+                />
+                {/* 対戦モード時の中央50%クリックハンドラー */}
+                {isBattleMode && (
+                  <div
+                    onClick={() => {
+                      if (!canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot))
+                        return
+                      const { matchId } = getMatchInfo(initialPos.slot)
+                      const loserSlot = getOpponent(initialPos.slot)
+                      advanceToBracket(matchId, initialPos.slot, loserSlot)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      left: '25%',
+                      top: '0',
+                      width: '50%',
+                      height: '100%',
+                      pointerEvents: 'auto',
+                      cursor:
+                        !canAdvanceToBracket(initialPos.slot) || isLoser(initialPos.slot)
+                          ? 'default'
+                          : 'pointer',
+                      zIndex: 10,
+                    }}
+                  />
+                )}
               </div>
             </motion.div>
           )
