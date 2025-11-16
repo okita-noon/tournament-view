@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Tournament from './components/Tournament'
+import HelpModal from './components/HelpModal'
 import { SLOT_POSITIONS, DEFAULT_PLAYERS, QF_WINNER_POSITIONS, SF_WINNER_POSITIONS, FINAL_PLAYER_POSITIONS, CHAMPION_POSITION, SLOT_WIDTH, SLOT_HEIGHT, AVAILABLE_PLAYERS } from './tournamentConfig'
 import './App.css'
 
@@ -53,6 +54,9 @@ function App() {
 
   // コントロール表示トグル
   const [showControls, setShowControls] = useState(false)
+
+  // ヘルプモーダル表示
+  const [showHelp, setShowHelp] = useState(false)
 
   // 開発用: tournamentConfig.jsの変更を自動検知してリセット
   useEffect(() => {
@@ -271,6 +275,8 @@ function App() {
 
   return (
     <div className="app">
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
       <Tournament
         players={players}
         playerPositions={playerPositions}
@@ -337,6 +343,15 @@ function App() {
             title="ランダムに設定"
           >
             🎲
+          </button>
+
+          {/* ヘルプボタン */}
+          <button
+            className="help-btn"
+            onClick={() => setShowHelp(true)}
+            title="使い方"
+          >
+            ?
           </button>
         </>
       )}
