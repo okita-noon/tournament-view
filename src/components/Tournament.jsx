@@ -24,6 +24,9 @@ function Tournament({
   matchResults,
   updatePlayer,
   advanceToBracket,
+  scale = 1.0,
+  offsetX = 0,
+  offsetY = 0,
 }) {
   const [clickedCoord, setClickedCoord] = useState(null)
 
@@ -471,6 +474,9 @@ function Tournament({
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           backgroundSize: '100% 100%',
+          transform: `translate(${offsetX}%, ${offsetY}%) scale(${scale})`,
+          transformOrigin: 'center center',
+          transition: 'transform 0.3s ease',
         }}
       >
         {/* SVG layer for winner paths */}

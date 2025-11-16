@@ -29,6 +29,16 @@ function App() {
   // 履歴管理（最大50ステップ）
   const [history, setHistory] = useState([])
 
+  // 縮尺管理
+  const [scale, setScale] = useState(1.0)
+
+  // 位置オフセット管理（%単位）
+  const [offsetY, setOffsetY] = useState(0)
+  const [offsetX, setOffsetX] = useState(0)
+
+  // コントロール表示トグル
+  const [showControls, setShowControls] = useState(false)
+
   // 開発用: tournamentConfig.jsの変更を自動検知してリセット
   useEffect(() => {
     if (import.meta.hot) {
@@ -176,6 +186,36 @@ function App() {
     localStorage.removeItem('matchResults')
   }
 
+  const zoomIn = () => {
+    setScale(prev => Math.min(prev * 1.1, 2.0))
+  }
+
+  const zoomOut = () => {
+    setScale(prev => Math.max(prev / 1.1, 0.5))
+  }
+
+  const moveUp = () => {
+    setOffsetY(prev => prev - 5)
+  }
+
+  const moveDown = () => {
+    setOffsetY(prev => prev + 5)
+  }
+
+  const moveLeft = () => {
+    setOffsetX(prev => prev - 5)
+  }
+
+  const moveRight = () => {
+    setOffsetX(prev => prev + 5)
+  }
+
+  const resetView = () => {
+    setOffsetX(0)
+    setOffsetY(0)
+    setScale(1.0)
+  }
+
   return (
     <div className="app">
       <Tournament
@@ -185,15 +225,67 @@ function App() {
         matchResults={matchResults}
         updatePlayer={updatePlayer}
         advanceToBracket={advanceToBracket}
+        scale={scale}
+        offsetX={offsetX}
+        offsetY={offsetY}
       />
 
+      {/* コントロール表示トグルボタン */}
+      <button
+        className="toggle-controls-btn"
+        onClick={() => setShowControls(!showControls)}
+        title={showControls ? "コントロールを隠す" : "コントロールを表示"}
+      >
+        {showControls ? "×" : "⚙"}
+      </button>
+
+      {showControls && (
+        <>
+          {/* 移動ボタン（左側） */}
+          <button className="move-up-btn" onClick={moveUp} title="上に移動">
+            ↑
+          </button>
+          <button className="move-down-btn" onClick={moveDown} title="下に移動">
+            ↓
+          </button>
+          <button className="move-left-btn" onClick={moveLeft} title="左に移動">
+            ←
+          </button>
+          <button className="move-right-btn" onClick={moveRight} title="右に移動">
+            →
+          </button>
+          <button className="reset-view-btn" onClick={resetView} title="中央に戻す">
+            ●
+          </button>
+
+          {/* ズームボタン（右側） */}
+          <button
+            className="zoom-in-btn"
+            onClick={zoomIn}
+            title="拡大"
+            disabled={scale >= 2.0}
+          >
+            +
+          </button>
+          <button
+            className="zoom-out-btn"
+            onClick={zoomOut}
+            title="縮小"
+            disabled={scale <= 0.5}
+          >
+            −
+          </button>
+        </>
+      )}
+
+      {/* その他のボタン（右下） */}
       <button
         className="undo-btn"
         onClick={undo}
         title="元に戻す"
         disabled={history.length === 0}
       >
-        ←
+        ⟲
       </button>
       <button className="reset-btn" onClick={reset} title="リセット">
         ↻
