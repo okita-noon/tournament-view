@@ -1,0 +1,23 @@
+# 画像ファイルの長期キャッシュ設定（1年）
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTMLファイルは常に最新版を取得
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# JavaScriptとCSSも長期キャッシュ（Viteがハッシュ付きファイル名を生成するため）
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
